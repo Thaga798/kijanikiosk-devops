@@ -1,7 +1,7 @@
 # KijaniKiosk API Server - Triage Report
 
 Date: 27 September 2026
-Investigated by: Ed (DevOps Engineer)
+Investigated by: Edwin Mathaga (DevOps Engineer)
 Server: Local Dev-Cluster Node
 ed-HP-EliteBook-840-G3
 
