@@ -1,0 +1,10 @@
+# KijaniKiosk Restricted Sudoers Custom Provision Group Directive
+# Target Principal: DevOps Engineer Account (amina)
+
+# Explicit Command Aliases with Full Path Mappings
+Cmnd_Alias KK_SERVICE_CTL = /usr/bin/systemctl restart kk-api, /usr/bin/systemctl status kk-api, /usr/bin/systemctl restart kk-payments, /usr/bin/systemctl status kk-payments, /usr/bin/systemctl restart kk-logs, /usr/bin/systemctl status kk-logs
+Cmnd_Alias KK_LOGS_CTL = /usr/bin/journalctl -u kk-api, /usr/bin/journalctl -u kk-payments, /usr/bin/journalctl -u kk-logs
+Cmnd_Alias KK_PROXY_EDIT = /usr/bin/sudoedit /etc/nginx/nginx.conf
+
+# Grant restricted privileges securely without prompt overrides for targeted wrappers
+amina ALL=(root) NOPASSWD: KK_SERVICE_CTL, KK_LOGS_CTL, KK_PROXY_EDIT
