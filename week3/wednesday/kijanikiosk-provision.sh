@@ -91,6 +91,61 @@ setfacl -m u:kk-payments:r-x "${APP_BASE}"/shared/logs
 setfacl -d -m u:kk-api:rwx "${APP_BASE}"/shared/logs
 setfacl -d -m u:kk-payments:r-x "${APP_BASE}"/shared/logs
 
+provision_logging() {
+  log_info "=== Phase: Logging Configuration ==="
+
+  # Enable persistent journal storage
+  mkdir -p /var/log/journal
+  systemd-tmpfiles --create --prefix /var/log/journal
+
+  # Configure size caps to prevent journal from filling disk
+  mkdir -p /etc/systemd/journald.conf.d
+  cat > /etc/systemd/journald.conf.d/kijanikiosk.conf << 'CONF'
+[Journal]
+Storage=persistent
+Compress=yes
+SystemMaxUse=500M
+SystemMaxFileSize=50M
+CONF
+
+  systemctl reload systemd-journald
+  log_info "Persistent journal configured (max 500MB)"
+}
+
+provision_logging
+
+provision_logging() {
+  log_info "=== Phase: Logging Configuration ==="
+  mkdir -p /var/log/journal
+  systemd-tmpfiles --create --prefix /var/log/journal
+
+  # Enforce programmatic daily log rotation profiles to avoid disk I/O saturation failures
+  cat > /etc/logrotate.d/kijanikiosk << 'EOF'
+/opt/kijanikiosk/shared/logs/*.log {
+    daily
+    rotate 7
+    compress
+    missingok
+    notifempty
+    create 0660 kk-logs kijanikiosk
+}
+EOF
+
+  # Configure size caps for systemd-journald
+  mkdir -p /etc/systemd/journald.conf.d
+  cat > /etc/systemd/journald.conf.d/kijanikiosk.conf << 'CONF'
+[Journal]
+Storage=persistent
+Compress=yes
+SystemMaxUse=500M
+SystemMaxFileSize=50M
+CONF
+
+  systemctl reload systemd-journald
+  log_info "Persistent journal configured (max 500MB) with daily logrotate structures."
+}
+
+
 # Phase 4: Programmatic Systemd Configuration Deployment
 log_info "=== Phase 4: Writing systemd Unit Files Programmatically ==="
 cat << 'EOF' > /etc/systemd/system/kk-api.service
@@ -149,7 +204,10 @@ if command -v ufw >/dev/null; then
     # FIX: Explicitly allow loopback connection interfaces to prevent trigger freezes
     ufw allow in on lo > /dev/null
     ufw allow out on lo > /dev/null
-    
+
+    # SECURITY POLICY GUARDRAIL: Never inject a global 'deny 3001/tcp' parameter.
+# Doing so breaks systemic internal system load balancer health checking loops,
+# triggering false cascading 502 gateway routing timeouts.
     # CRITICAL: Structural Ordering Rule - Port 22 Allowed Prior to Activation
     ufw allow 22/tcp comment 'SSH inbound clearance' > /dev/null
     ufw allow 80/tcp comment 'HTTP network listener' > /dev/null
