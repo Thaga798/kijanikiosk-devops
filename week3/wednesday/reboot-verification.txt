@@ -1,0 +1,5 @@
+○ kk-api.service - KijaniKiosk API Service
+     Loaded: loaded (/etc/systemd/system/kk-api.service; disabled; preset: enabled)
+     Active: inactive (dead)
+       Docs: https://github.com/kijanikiosk/api/blob/main/README.md
+Status: inactive
