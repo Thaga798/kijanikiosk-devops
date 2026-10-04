@@ -40,12 +40,12 @@
 - How will the SSH access restriction be represented for a local VM?
 - Should HTTP port 80 actually be opened at this stage if no web service is running yet?
 
-#### Hardest Decision and Why
 
-The hardest decision was determining how to represent the networking and access-control requirements because the assignment is written using cloud concepts 
-such as VPCs, subnets, security groups, and public IP addresses, while I am using Multipass locally because I do not have an AWS account. I was 
-therefore unsure whether I should try to assign AWS-style values to the local VM or treat those concepts as not applicable. I decided to document the local 
-Multipass networking honestly rather than invent cloud resources that do not exist. The VM has a private IP address and does not have a public IP, while 
-UFW can provide the host-level firewall controls. This decision will need to be made explicit in the Terraform configuration because Terraform will require 
-me to define exactly what infrastructure and networking resources are being managed.
+### Hardest Decision: Choosing the Instance Type
+The hardest decision I faced was choosing the right instance type for the KijaniKiosk API server. I needed enough CPU and memory for the server to run properly without giving it more resources than necessary.
+
+I decided on 1 CPU and 1 GB of RAM, but the exact instance type can be different depending on the cloud provider. This showed me why Terraform variables are useful because the instance type can be changed without rewriting the whole configuration.
+
+This also helped me understand that the desired-state specification should describe what I want the server to have, while Terraform handles how that state is created.
+
 
