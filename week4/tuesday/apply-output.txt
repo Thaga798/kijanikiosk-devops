@@ -1,0 +1,24 @@
+ed@ed-HP-EliteBook-840-G3:~/kijanikiosk-infra$ terraform apply "lab-plan.tfplan"
+null_resource.kijanikiosk_api: Destroying... [id=7532420508251733028]
+null_resource.kijanikiosk_api: Destruction complete after 0s
+null_resource.kijanikiosk_api: Creating...
+null_resource.kijanikiosk_api: Provisioning with 'remote-exec'...
+null_resource.kijanikiosk_api (remote-exec): Connecting to remote host via SSH...
+null_resource.kijanikiosk_api (remote-exec):   Host: 10.139.243.128
+null_resource.kijanikiosk_api (remote-exec):   User: ubuntu
+null_resource.kijanikiosk_api (remote-exec):   Password: false
+null_resource.kijanikiosk_api (remote-exec):   Private key: true
+null_resource.kijanikiosk_api (remote-exec):   Certificate: false
+null_resource.kijanikiosk_api (remote-exec):   SSH Agent: true
+null_resource.kijanikiosk_api (remote-exec):   Checking Host Key: false
+null_resource.kijanikiosk_api (remote-exec):   Target Platform: unix
+null_resource.kijanikiosk_api (remote-exec): Connected!
+null_resource.kijanikiosk_api (remote-exec): Connected to kijanikiosk-api (staging)
+null_resource.kijanikiosk_api (remote-exec): Linux kijanikiosk-api 5.15.0-194-generic #204-Ubuntu SMP Wed Sep 2 13:09:23 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux
+null_resource.kijanikiosk_api: Creation complete after 1s [id=6339430250022353637]
+
+Apply complete! Resources: 1 added, 0 changed, 1 destroyed.
+
+Outputs:
+
+api_server_ip = "10.139.243.128"

@@ -1,0 +1,45 @@
+
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  [32m+[0m create[0m
+
+Terraform will perform the following actions:
+
+[1m  # null_resource.kijanikiosk_api[0m will be created
+[0m  [32m+[0m[0m resource "null_resource" "kijanikiosk_api" {
+      [32m+[0m[0m id       = (known after apply)
+      [32m+[0m[0m triggers = {
+          [32m+[0m[0m "ip" = "10.139.243.128"
+        }
+    }
+
+[1mPlan:[0m [0m1 to add, 0 to change, 0 to destroy.
+
+Changes to Outputs:
+  [32m+[0m[0m api_server_ip = "10.139.243.128"
+[90m
+─────────────────────────────────────────────────────────────────────────────[0m
+
+Saved the plan to: lab-plan.tfplan
+
+To perform exactly these actions, run the following command to apply:
+    terraform apply "lab-plan.tfplan"
+
+# Plan Review Answers
+#
+# 1. How many resources will be created?
+#    One resource will be created:
+#    null_resource.kijanikiosk_api
+#
+# 2. Are there any -/+ symbols?
+#    No. The plan only shows + create, so Terraform will
+#    create the resource and not replace an existing one.
+#
+# 3. What is the AMI ID that the data source resolved to?
+#    Not applicable. This is the Multipass path, so there
+#    is no AWS AMI or AMI data source in this configuration.
+#
+# 4. Are there any known after apply values?
+#    Yes. The resource ID is shown as (known after apply).
+#    Terraform cannot know this value until the resource
+#    is created.
