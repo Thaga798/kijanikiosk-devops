@@ -1,0 +1,261 @@
+---
+- name: Configure KijaniKiosk servers
+  hosts: kijanikiosk
+  become: true
+  become_method: sudo
+
+  handlers:
+    - name: Reload systemd
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: Restart service
+      ansible.builtin.systemd:
+        name: "{{ service_name }}.service"
+        state: restarted
+      when: service_name + '.service' in ansible_facts.services
+
+    - name: Reload journald
+      ansible.builtin.systemd:
+        name: systemd-journald
+        state: restarted
+
+  tasks:
+    - name: Gather service facts
+      ansible.builtin.service_facts:
+
+
+    - name: Install required packages
+      ansible.builtin.apt:
+        name:
+          - curl
+          - gnupg
+          - acl
+          - ufw
+          - nginx
+          - nodejs
+        state: present
+        install_recommends: false
+
+    - name: Hold nginx and nodejs packages
+      when: not ansible_check_mode
+      ansible.builtin.dpkg_selections:
+        name: "{{ item }}"
+        selection: hold
+      loop:
+        - nginx
+        - nodejs
+
+    - name: Create kijanikiosk system group
+      ansible.builtin.group:
+        name: kijanikiosk
+        state: present
+        system: true
+
+    - name: Create service-specific groups
+      ansible.builtin.group:
+        name: "{{ item }}"
+        state: present
+        system: true
+      loop:
+        - kk-api
+        - kk-payments
+        - kk-logs
+
+    - name: Create service accounts
+      ansible.builtin.user:
+        name: "{{ item }}"
+        system: true
+        shell: /usr/sbin/nologin
+        group: "{{ item }}"
+        groups: kijanikiosk
+        append: true
+        comment: "KijaniKiosk {{ item }} service"
+      loop:
+        - kk-api
+        - kk-payments
+        - kk-logs
+
+    - name: Create application directory tree
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: directory
+        owner: "{{ item.owner }}"
+        group: "{{ item.group }}"
+        mode: "{{ item.mode }}"
+      loop:
+        - path: "{{ base_dir }}"
+          owner: root
+          group: root
+          mode: "0755"
+        - path: "{{ base_dir }}/api"
+          owner: kk-api
+          group: kk-api
+          mode: "0750"
+        - path: "{{ base_dir }}/payments"
+          owner: kk-payments
+          group: kk-payments
+          mode: "0750"
+        - path: "{{ base_dir }}/logs"
+          owner: kk-logs
+          group: kk-logs
+          mode: "0750"
+        - path: "{{ base_dir }}/config"
+          owner: root
+          group: kijanikiosk
+          mode: "0750"
+        - path: "{{ base_dir }}/scripts"
+          owner: root
+          group: root
+          mode: "0750"
+        - path: "{{ base_dir }}/shared"
+          owner: root
+          group: root
+          mode: "0755"
+        - path: "{{ log_dir }}"
+          owner: kk-logs
+          group: kk-logs
+          mode: "2770"
+        - path: "{{ base_dir }}/health"
+          owner: kk-logs
+          group: kijanikiosk
+          mode: "0750"
+
+    - name: Set ACLs on shared logs
+      when: not ansible_check_mode
+      ansible.posix.acl:
+        path: "{{ log_dir }}"
+        entity: "{{ item.entity }}"
+        etype: user
+        permissions: "{{ item.permissions }}"
+        state: present
+      loop:
+        - entity: kk-api
+          permissions: rwx
+        - entity: kk-payments
+          permissions: r-x
+
+    - name: Set default ACLs on shared logs
+      when: not ansible_check_mode
+      ansible.posix.acl:
+        path: "{{ log_dir }}"
+        entity: "{{ item.entity }}"
+        etype: user
+        permissions: "{{ item.permissions }}"
+        default: true
+        state: present
+      loop:
+        - entity: kk-api
+          permissions: rwx
+        - entity: kk-payments
+          permissions: r-x
+
+    - name: Deploy payments processor
+      when:
+        - not ansible_check_mode
+        - service_name == "kk-payments"
+      ansible.builtin.template:
+        src: payments_processor.py.j2
+        dest: "{{ base_dir }}/payments/processor.py"
+        owner: kk-payments
+        group: kk-payments
+        mode: "0750"
+      notify:
+        - Restart service
+
+    - name: Deploy service unit file
+      ansible.builtin.template:
+        src: service.unit.j2
+        dest: "/etc/systemd/system/{{ service_name }}.service"
+        owner: root
+        group: root
+        mode: "0644"
+      notify:
+        - Reload systemd
+        - Restart service
+
+    - name: Enable and start service
+      when: not ansible_check_mode
+      ansible.builtin.systemd:
+        name: "{{ service_name }}.service"
+        enabled: true
+        state: started
+        daemon_reload: true
+
+    - name: Set ufw default deny incoming
+      community.general.ufw:
+        state: enabled
+        default: deny
+        direction: incoming
+
+    - name: Set ufw default allow outgoing
+      community.general.ufw:
+        default: allow
+        direction: outgoing
+
+    - name: Allow SSH
+      community.general.ufw:
+        rule: allow
+        port: "22"
+        proto: tcp
+
+    - name: Allow loopback traffic
+      community.general.ufw:
+        rule: allow
+        interface: lo
+        direction: in
+
+    - name: Allow service port from localhost
+      community.general.ufw:
+        rule: allow
+        port: "{{ service_port }}"
+        proto: tcp
+        from_ip: 127.0.0.1
+        to_ip: 127.0.0.1
+
+    - name: Create persistent journal directory
+      ansible.builtin.file:
+        path: /var/log/journal
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+      notify: Reload journald
+
+    - name: Create journald configuration directory
+      ansible.builtin.file:
+        path: /etc/systemd/journald.conf.d
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Create journald configuration directory
+      ansible.builtin.file:
+        path: /etc/systemd/journald.conf.d
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Configure persistent journald
+      ansible.builtin.copy:
+        dest: /etc/systemd/journald.conf.d/kijanikiosk.conf
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          [Journal]
+          Storage=persistent
+          Compress=yes
+          SystemMaxUse=500M
+          SystemMaxFileSize=50M
+      notify: Reload journald
+
+    - name: Deploy logrotate configuration
+      ansible.builtin.template:
+        src: logrotate.j2
+        dest: /etc/logrotate.d/kijanikiosk
+        owner: root
+        group: root
+        mode: "0644"
