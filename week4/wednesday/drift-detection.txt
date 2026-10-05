@@ -1,0 +1,41 @@
+Drift Detection - KijaniKiosk Multipass Infrastructure
+
+Drift simulated:
+A file was manually created inside the API VM without using Terraform:
+
+  /tmp/kijanikiosk-drift.txt
+
+The file contained:
+
+  DRIFT_TEST
+
+Verification confirmed that the file existed inside the VM.
+
+Terraform drift check:
+The command below was then executed:
+
+  terraform plan 2>&1 | tee drift-plan.txt
+
+Terraform reported:
+
+  No changes. Your infrastructure matches the configuration.
+
+Result:
+Terraform did not detect the manually created file.
+
+Reason:
+The KijaniKiosk Wednesday lab uses a null_resource with an SSH remote-exec
+provisioner for the Multipass implementation. The null_resource tracks its
+configured Terraform attributes and triggers, but it does not continuously
+inspect arbitrary files or configuration changes made inside the guest VM.
+
+Conclusion:
+The manual change represents real guest-level drift, but it is outside the
+state observed by the current null_resource implementation. Detecting this
+type of drift would require an additional remote-state/checksum mechanism
+or a resource/provider that explicitly manages the guest configuration.
+
+Remediation decision:
+The test file is temporary and does not affect the KijaniKiosk application,
+so it will be removed manually. The limitation is documented rather than
+claiming false Terraform drift detection.
