@@ -1,0 +1,183 @@
+
+PLAY [Configure KijaniKiosk servers] *******************************************
+
+TASK [Gathering Facts] *********************************************************
+[WARNING]: Host 'payments-staging' is using the discovered Python interpreter at '/usr/bin/python3.10', but future installation of another Python interpreter could cause a different interpreter to be discovered. See https://docs.ansible.com/ansible-core/2.20/reference_appendices/interpreter_discovery.html for more information.
+[WARNING]: Host 'logs-staging' is using the discovered Python interpreter at '/usr/bin/python3.10', but future installation of another Python interpreter could cause a different interpreter to be discovered. See https://docs.ansible.com/ansible-core/2.20/reference_appendices/interpreter_discovery.html for more information.
+[WARNING]: Host 'api-staging' is using the discovered Python interpreter at '/usr/bin/python3.10', but future installation of another Python interpreter could cause a different interpreter to be discovered. See https://docs.ansible.com/ansible-core/2.20/reference_appendices/interpreter_discovery.html for more information.
+ok: [payments-staging]
+ok: [logs-staging]
+ok: [api-staging]
+
+TASK [Gather service facts] ****************************************************
+ok: [api-staging]
+ok: [logs-staging]
+ok: [payments-staging]
+
+TASK [Install required packages] ***********************************************
+ok: [api-staging]
+ok: [logs-staging]
+ok: [payments-staging]
+
+TASK [Hold nginx and nodejs packages] ******************************************
+ok: [logs-staging] => (item=nginx)
+ok: [api-staging] => (item=nginx)
+ok: [logs-staging] => (item=nodejs)
+ok: [api-staging] => (item=nodejs)
+ok: [payments-staging] => (item=nginx)
+ok: [payments-staging] => (item=nodejs)
+
+TASK [Create kijanikiosk system group] *****************************************
+ok: [logs-staging]
+ok: [payments-staging]
+ok: [api-staging]
+
+TASK [Create service-specific groups] ******************************************
+ok: [logs-staging] => (item=kk-api)
+ok: [payments-staging] => (item=kk-api)
+ok: [api-staging] => (item=kk-api)
+ok: [logs-staging] => (item=kk-payments)
+ok: [payments-staging] => (item=kk-payments)
+ok: [api-staging] => (item=kk-payments)
+ok: [logs-staging] => (item=kk-logs)
+ok: [api-staging] => (item=kk-logs)
+ok: [payments-staging] => (item=kk-logs)
+
+TASK [Create service accounts] *************************************************
+ok: [logs-staging] => (item=kk-api)
+ok: [payments-staging] => (item=kk-api)
+ok: [api-staging] => (item=kk-api)
+ok: [logs-staging] => (item=kk-payments)
+ok: [payments-staging] => (item=kk-payments)
+ok: [api-staging] => (item=kk-payments)
+ok: [logs-staging] => (item=kk-logs)
+ok: [payments-staging] => (item=kk-logs)
+ok: [api-staging] => (item=kk-logs)
+
+TASK [Create application directory tree] ***************************************
+ok: [logs-staging] => (item={'path': '/opt/kijanikiosk', 'owner': 'root', 'group': 'root', 'mode': '0755'})
+ok: [payments-staging] => (item={'path': '/opt/kijanikiosk', 'owner': 'root', 'group': 'root', 'mode': '0755'})
+ok: [api-staging] => (item={'path': '/opt/kijanikiosk', 'owner': 'root', 'group': 'root', 'mode': '0755'})
+ok: [logs-staging] => (item={'path': '/opt/kijanikiosk/api', 'owner': 'kk-api', 'group': 'kk-api', 'mode': '0750'})
+ok: [payments-staging] => (item={'path': '/opt/kijanikiosk/api', 'owner': 'kk-api', 'group': 'kk-api', 'mode': '0750'})
+ok: [api-staging] => (item={'path': '/opt/kijanikiosk/api', 'owner': 'kk-api', 'group': 'kk-api', 'mode': '0750'})
+ok: [logs-staging] => (item={'path': '/opt/kijanikiosk/payments', 'owner': 'kk-payments', 'group': 'kk-payments', 'mode': '0750'})
+ok: [payments-staging] => (item={'path': '/opt/kijanikiosk/payments', 'owner': 'kk-payments', 'group': 'kk-payments', 'mode': '0750'})
+ok: [api-staging] => (item={'path': '/opt/kijanikiosk/payments', 'owner': 'kk-payments', 'group': 'kk-payments', 'mode': '0750'})
+ok: [payments-staging] => (item={'path': '/opt/kijanikiosk/logs', 'owner': 'kk-logs', 'group': 'kk-logs', 'mode': '0750'})
+ok: [logs-staging] => (item={'path': '/opt/kijanikiosk/logs', 'owner': 'kk-logs', 'group': 'kk-logs', 'mode': '0750'})
+ok: [api-staging] => (item={'path': '/opt/kijanikiosk/logs', 'owner': 'kk-logs', 'group': 'kk-logs', 'mode': '0750'})
+ok: [logs-staging] => (item={'path': '/opt/kijanikiosk/config', 'owner': 'root', 'group': 'kijanikiosk', 'mode': '0750'})
+ok: [payments-staging] => (item={'path': '/opt/kijanikiosk/config', 'owner': 'root', 'group': 'kijanikiosk', 'mode': '0750'})
+ok: [api-staging] => (item={'path': '/opt/kijanikiosk/config', 'owner': 'root', 'group': 'kijanikiosk', 'mode': '0750'})
+ok: [logs-staging] => (item={'path': '/opt/kijanikiosk/scripts', 'owner': 'root', 'group': 'root', 'mode': '0750'})
+ok: [payments-staging] => (item={'path': '/opt/kijanikiosk/scripts', 'owner': 'root', 'group': 'root', 'mode': '0750'})
+ok: [api-staging] => (item={'path': '/opt/kijanikiosk/scripts', 'owner': 'root', 'group': 'root', 'mode': '0750'})
+ok: [payments-staging] => (item={'path': '/opt/kijanikiosk/shared', 'owner': 'root', 'group': 'root', 'mode': '0755'})
+ok: [logs-staging] => (item={'path': '/opt/kijanikiosk/shared', 'owner': 'root', 'group': 'root', 'mode': '0755'})
+ok: [api-staging] => (item={'path': '/opt/kijanikiosk/shared', 'owner': 'root', 'group': 'root', 'mode': '0755'})
+ok: [payments-staging] => (item={'path': '/opt/kijanikiosk/shared/logs', 'owner': 'kk-logs', 'group': 'kk-logs', 'mode': '2770'})
+ok: [logs-staging] => (item={'path': '/opt/kijanikiosk/shared/logs', 'owner': 'kk-logs', 'group': 'kk-logs', 'mode': '2770'})
+ok: [api-staging] => (item={'path': '/opt/kijanikiosk/shared/logs', 'owner': 'kk-logs', 'group': 'kk-logs', 'mode': '2770'})
+ok: [payments-staging] => (item={'path': '/opt/kijanikiosk/health', 'owner': 'kk-logs', 'group': 'kijanikiosk', 'mode': '0750'})
+ok: [logs-staging] => (item={'path': '/opt/kijanikiosk/health', 'owner': 'kk-logs', 'group': 'kijanikiosk', 'mode': '0750'})
+ok: [api-staging] => (item={'path': '/opt/kijanikiosk/health', 'owner': 'kk-logs', 'group': 'kijanikiosk', 'mode': '0750'})
+
+TASK [Set ACLs on shared logs] *************************************************
+[WARNING]: Deprecation warnings can be disabled by setting `deprecation_warnings=False` in ansible.cfg.
+[DEPRECATION WARNING]: Importing 'to_native' from 'ansible.module_utils._text' is deprecated. This feature will be removed from ansible-core version 2.24. Use ansible.module_utils.common.text.converters instead.
+ok: [api-staging] => (item={'entity': 'kk-api', 'permissions': 'rwx'})
+ok: [logs-staging] => (item={'entity': 'kk-api', 'permissions': 'rwx'})
+ok: [payments-staging] => (item={'entity': 'kk-api', 'permissions': 'rwx'})
+ok: [api-staging] => (item={'entity': 'kk-payments', 'permissions': 'r-x'})
+ok: [logs-staging] => (item={'entity': 'kk-payments', 'permissions': 'r-x'})
+ok: [payments-staging] => (item={'entity': 'kk-payments', 'permissions': 'r-x'})
+
+TASK [Set default ACLs on shared logs] *****************************************
+ok: [payments-staging] => (item={'entity': 'kk-api', 'permissions': 'rwx'})
+ok: [logs-staging] => (item={'entity': 'kk-api', 'permissions': 'rwx'})
+ok: [api-staging] => (item={'entity': 'kk-api', 'permissions': 'rwx'})
+ok: [logs-staging] => (item={'entity': 'kk-payments', 'permissions': 'r-x'})
+ok: [payments-staging] => (item={'entity': 'kk-payments', 'permissions': 'r-x'})
+ok: [api-staging] => (item={'entity': 'kk-payments', 'permissions': 'r-x'})
+
+TASK [Deploy payments processor] ***********************************************
+skipping: [api-staging]
+skipping: [logs-staging]
+changed: [payments-staging]
+
+TASK [Deploy service unit file] ************************************************
+changed: [api-staging]
+changed: [logs-staging]
+changed: [payments-staging]
+
+TASK [Enable and start service] ************************************************
+ok: [api-staging]
+ok: [logs-staging]
+ok: [payments-staging]
+
+TASK [Set ufw default deny incoming] *******************************************
+ok: [logs-staging]
+ok: [api-staging]
+ok: [payments-staging]
+
+TASK [Set ufw default allow outgoing] ******************************************
+ok: [logs-staging]
+ok: [payments-staging]
+ok: [api-staging]
+
+TASK [Allow SSH] ***************************************************************
+ok: [api-staging]
+ok: [payments-staging]
+ok: [logs-staging]
+
+TASK [Allow loopback traffic] **************************************************
+ok: [api-staging]
+ok: [payments-staging]
+ok: [logs-staging]
+
+TASK [Allow service port from localhost] ***************************************
+ok: [payments-staging]
+ok: [api-staging]
+ok: [logs-staging]
+
+TASK [Create persistent journal directory] *************************************
+ok: [logs-staging]
+ok: [payments-staging]
+ok: [api-staging]
+
+TASK [Create journald configuration directory] *********************************
+ok: [payments-staging]
+ok: [logs-staging]
+ok: [api-staging]
+
+TASK [Create journald configuration directory] *********************************
+ok: [api-staging]
+ok: [logs-staging]
+ok: [payments-staging]
+
+TASK [Configure persistent journald] *******************************************
+ok: [api-staging]
+ok: [payments-staging]
+ok: [logs-staging]
+
+TASK [Deploy logrotate configuration] ******************************************
+ok: [logs-staging]
+ok: [api-staging]
+ok: [payments-staging]
+
+RUNNING HANDLER [Reload systemd] ***********************************************
+ok: [payments-staging]
+ok: [api-staging]
+ok: [logs-staging]
+
+RUNNING HANDLER [Restart service] **********************************************
+changed: [payments-staging]
+changed: [api-staging]
+changed: [logs-staging]
+
+PLAY RECAP *********************************************************************
+api-staging                : ok=24   changed=2    unreachable=0    failed=0    skipped=1    rescued=0    ignored=0   
+logs-staging               : ok=24   changed=2    unreachable=0    failed=0    skipped=1    rescued=0    ignored=0   
+payments-staging           : ok=25   changed=3    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+

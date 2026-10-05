@@ -1,0 +1,26 @@
+[33m╷[0m[0m
+[33m│[0m [0m[1m[33mWarning: [0m[0m[1mDeprecated Parameter[0m
+[33m│[0m [0m
+[33m│[0m [0m[0mThe parameter "endpoint" is deprecated. Use parameter "endpoints.s3"
+[33m│[0m [0minstead.
+[33m╵[0m[0m
+[33m╷[0m[0m
+[33m│[0m [0m[1m[33mWarning: [0m[0m[1mDeprecated Parameter[0m
+[33m│[0m [0m
+[33m│[0m [0m[0mThe parameter "force_path_style" is deprecated. Use parameter
+[33m│[0m [0m"use_path_style" instead.
+[33m╵[0m[0m
+[0m[1mdata.external.multipass_ips["logs"]: Reading...[0m[0m
+[0m[1mdata.external.multipass_ips["api"]: Reading...[0m[0m
+[0m[1mdata.external.multipass_ips["payments"]: Reading...[0m[0m
+[0m[1mdata.external.multipass_ips["logs"]: Read complete after 7s [id=-][0m
+[0m[1mdata.external.multipass_ips["api"]: Read complete after 7s [id=-][0m
+[0m[1mdata.external.multipass_ips["payments"]: Read complete after 7s [id=-][0m
+[0m[1mmodule.app_servers["logs"].null_resource.this: Refreshing state... [id=3952661643015456666][0m
+[0m[1mmodule.app_servers["payments"].null_resource.this: Refreshing state... [id=8238824103238836274][0m
+[0m[1mmodule.app_servers["api"].null_resource.this: Refreshing state... [id=1071514503672950515][0m
+
+[0m[1m[32mNo changes.[0m[1m Your infrastructure matches the configuration.[0m
+
+[0mTerraform has compared your real infrastructure against your configuration
+and found no differences, so no changes are needed.
