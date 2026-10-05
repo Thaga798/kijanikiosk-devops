@@ -1,0 +1,40 @@
+[Unit]
+Description=KijaniKiosk {{ service_name }} Service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User={{ service_name }}
+Group={{ service_name }}
+WorkingDirectory={{ base_dir }}/{{ service_directory }}
+ExecStart={{ service_exec }}
+Restart=on-failure
+RestartSec=5s
+StartLimitIntervalSec=60s
+StartLimitBurst=3
+{% if service_name == 'kk-api' %}
+EnvironmentFile=-{{ base_dir }}/config/db.env
+EnvironmentFile=-{{ base_dir }}/config/payments-api.env
+Environment="NODE_ENV=production"
+Environment="PORT={{ service_port }}"
+{% elif service_name == 'kk-payments' %}
+EnvironmentFile=-{{ base_dir }}/config/payments-api.env
+{% elif service_name == 'kk-logs' %}
+EnvironmentFile=-{{ base_dir }}/config/db.env
+{% endif %}
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths={{ log_dir }}
+ProtectHome=true
+CapabilityBoundingSet=
+MemoryDenyWriteExecute=true
+SystemCallFilter=@system-service
+{% if service_name == 'kk-payments' %}
+PrivateDevices=true
+RestrictRealtime=true
+{% endif %}
+
+[Install]
+WantedBy=multi-user.target

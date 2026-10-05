@@ -1,0 +1,168 @@
+
+PLAY [Configure KijaniKiosk servers] *******************************************
+
+TASK [Gathering Facts] *********************************************************
+[WARNING]: Host 'logs-staging' is using the discovered Python interpreter at '/usr/bin/python3.10', but future installation of another Python interpreter could cause a different interpreter to be discovered. See https://docs.ansible.com/ansible-core/2.20/reference_appendices/interpreter_discovery.html for more information.
+[WARNING]: Host 'payments-staging' is using the discovered Python interpreter at '/usr/bin/python3.10', but future installation of another Python interpreter could cause a different interpreter to be discovered. See https://docs.ansible.com/ansible-core/2.20/reference_appendices/interpreter_discovery.html for more information.
+[WARNING]: Host 'api-staging' is using the discovered Python interpreter at '/usr/bin/python3.10', but future installation of another Python interpreter could cause a different interpreter to be discovered. See https://docs.ansible.com/ansible-core/2.20/reference_appendices/interpreter_discovery.html for more information.
+ok: [logs-staging]
+ok: [payments-staging]
+ok: [api-staging]
+
+TASK [Gather service facts] ****************************************************
+ok: [logs-staging]
+ok: [payments-staging]
+ok: [api-staging]
+
+TASK [Install required packages] ***********************************************
+ok: [payments-staging]
+ok: [api-staging]
+ok: [logs-staging]
+
+TASK [Hold nginx and nodejs packages] ******************************************
+ok: [logs-staging] => (item=nginx)
+ok: [payments-staging] => (item=nginx)
+ok: [api-staging] => (item=nginx)
+ok: [logs-staging] => (item=nodejs)
+ok: [payments-staging] => (item=nodejs)
+ok: [api-staging] => (item=nodejs)
+
+TASK [Create kijanikiosk system group] *****************************************
+ok: [api-staging]
+ok: [payments-staging]
+ok: [logs-staging]
+
+TASK [Create service-specific groups] ******************************************
+ok: [payments-staging] => (item=kk-api)
+ok: [api-staging] => (item=kk-api)
+ok: [logs-staging] => (item=kk-api)
+ok: [api-staging] => (item=kk-payments)
+ok: [payments-staging] => (item=kk-payments)
+ok: [logs-staging] => (item=kk-payments)
+ok: [payments-staging] => (item=kk-logs)
+ok: [api-staging] => (item=kk-logs)
+ok: [logs-staging] => (item=kk-logs)
+
+TASK [Create service accounts] *************************************************
+ok: [payments-staging] => (item=kk-api)
+ok: [api-staging] => (item=kk-api)
+ok: [logs-staging] => (item=kk-api)
+ok: [payments-staging] => (item=kk-payments)
+ok: [api-staging] => (item=kk-payments)
+ok: [logs-staging] => (item=kk-payments)
+ok: [api-staging] => (item=kk-logs)
+ok: [payments-staging] => (item=kk-logs)
+ok: [logs-staging] => (item=kk-logs)
+
+TASK [Create application directory tree] ***************************************
+ok: [payments-staging] => (item={'path': '/opt/kijanikiosk', 'owner': 'root', 'group': 'root', 'mode': '0755'})
+ok: [logs-staging] => (item={'path': '/opt/kijanikiosk', 'owner': 'root', 'group': 'root', 'mode': '0755'})
+ok: [api-staging] => (item={'path': '/opt/kijanikiosk', 'owner': 'root', 'group': 'root', 'mode': '0755'})
+ok: [payments-staging] => (item={'path': '/opt/kijanikiosk/api', 'owner': 'kk-api', 'group': 'kk-api', 'mode': '0750'})
+ok: [logs-staging] => (item={'path': '/opt/kijanikiosk/api', 'owner': 'kk-api', 'group': 'kk-api', 'mode': '0750'})
+ok: [api-staging] => (item={'path': '/opt/kijanikiosk/api', 'owner': 'kk-api', 'group': 'kk-api', 'mode': '0750'})
+ok: [logs-staging] => (item={'path': '/opt/kijanikiosk/payments', 'owner': 'kk-payments', 'group': 'kk-payments', 'mode': '0750'})
+ok: [payments-staging] => (item={'path': '/opt/kijanikiosk/payments', 'owner': 'kk-payments', 'group': 'kk-payments', 'mode': '0750'})
+ok: [api-staging] => (item={'path': '/opt/kijanikiosk/payments', 'owner': 'kk-payments', 'group': 'kk-payments', 'mode': '0750'})
+ok: [payments-staging] => (item={'path': '/opt/kijanikiosk/logs', 'owner': 'kk-logs', 'group': 'kk-logs', 'mode': '0750'})
+ok: [api-staging] => (item={'path': '/opt/kijanikiosk/logs', 'owner': 'kk-logs', 'group': 'kk-logs', 'mode': '0750'})
+ok: [logs-staging] => (item={'path': '/opt/kijanikiosk/logs', 'owner': 'kk-logs', 'group': 'kk-logs', 'mode': '0750'})
+ok: [payments-staging] => (item={'path': '/opt/kijanikiosk/config', 'owner': 'root', 'group': 'kijanikiosk', 'mode': '0750'})
+ok: [api-staging] => (item={'path': '/opt/kijanikiosk/config', 'owner': 'root', 'group': 'kijanikiosk', 'mode': '0750'})
+ok: [logs-staging] => (item={'path': '/opt/kijanikiosk/config', 'owner': 'root', 'group': 'kijanikiosk', 'mode': '0750'})
+ok: [payments-staging] => (item={'path': '/opt/kijanikiosk/scripts', 'owner': 'root', 'group': 'root', 'mode': '0750'})
+ok: [api-staging] => (item={'path': '/opt/kijanikiosk/scripts', 'owner': 'root', 'group': 'root', 'mode': '0750'})
+ok: [logs-staging] => (item={'path': '/opt/kijanikiosk/scripts', 'owner': 'root', 'group': 'root', 'mode': '0750'})
+ok: [payments-staging] => (item={'path': '/opt/kijanikiosk/shared', 'owner': 'root', 'group': 'root', 'mode': '0755'})
+ok: [logs-staging] => (item={'path': '/opt/kijanikiosk/shared', 'owner': 'root', 'group': 'root', 'mode': '0755'})
+ok: [api-staging] => (item={'path': '/opt/kijanikiosk/shared', 'owner': 'root', 'group': 'root', 'mode': '0755'})
+ok: [payments-staging] => (item={'path': '/opt/kijanikiosk/shared/logs', 'owner': 'kk-logs', 'group': 'kk-logs', 'mode': '2770'})
+ok: [api-staging] => (item={'path': '/opt/kijanikiosk/shared/logs', 'owner': 'kk-logs', 'group': 'kk-logs', 'mode': '2770'})
+ok: [logs-staging] => (item={'path': '/opt/kijanikiosk/shared/logs', 'owner': 'kk-logs', 'group': 'kk-logs', 'mode': '2770'})
+ok: [payments-staging] => (item={'path': '/opt/kijanikiosk/health', 'owner': 'kk-logs', 'group': 'kijanikiosk', 'mode': '0750'})
+ok: [api-staging] => (item={'path': '/opt/kijanikiosk/health', 'owner': 'kk-logs', 'group': 'kijanikiosk', 'mode': '0750'})
+ok: [logs-staging] => (item={'path': '/opt/kijanikiosk/health', 'owner': 'kk-logs', 'group': 'kijanikiosk', 'mode': '0750'})
+
+TASK [Set ACLs on shared logs] *************************************************
+[WARNING]: Deprecation warnings can be disabled by setting `deprecation_warnings=False` in ansible.cfg.
+[DEPRECATION WARNING]: Importing 'to_native' from 'ansible.module_utils._text' is deprecated. This feature will be removed from ansible-core version 2.24. Use ansible.module_utils.common.text.converters instead.
+ok: [payments-staging] => (item={'entity': 'kk-api', 'permissions': 'rwx'})
+ok: [api-staging] => (item={'entity': 'kk-api', 'permissions': 'rwx'})
+ok: [logs-staging] => (item={'entity': 'kk-api', 'permissions': 'rwx'})
+ok: [payments-staging] => (item={'entity': 'kk-payments', 'permissions': 'r-x'})
+ok: [logs-staging] => (item={'entity': 'kk-payments', 'permissions': 'r-x'})
+ok: [api-staging] => (item={'entity': 'kk-payments', 'permissions': 'r-x'})
+
+TASK [Set default ACLs on shared logs] *****************************************
+ok: [payments-staging] => (item={'entity': 'kk-api', 'permissions': 'rwx'})
+ok: [api-staging] => (item={'entity': 'kk-api', 'permissions': 'rwx'})
+ok: [logs-staging] => (item={'entity': 'kk-api', 'permissions': 'rwx'})
+ok: [payments-staging] => (item={'entity': 'kk-payments', 'permissions': 'r-x'})
+ok: [logs-staging] => (item={'entity': 'kk-payments', 'permissions': 'r-x'})
+ok: [api-staging] => (item={'entity': 'kk-payments', 'permissions': 'r-x'})
+
+TASK [Deploy service unit file] ************************************************
+ok: [api-staging]
+ok: [payments-staging]
+ok: [logs-staging]
+
+TASK [Enable and start service] ************************************************
+ok: [payments-staging]
+ok: [logs-staging]
+ok: [api-staging]
+
+TASK [Set ufw default deny incoming] *******************************************
+ok: [payments-staging]
+ok: [api-staging]
+ok: [logs-staging]
+
+TASK [Set ufw default allow outgoing] ******************************************
+ok: [api-staging]
+ok: [logs-staging]
+ok: [payments-staging]
+
+TASK [Allow SSH] ***************************************************************
+ok: [payments-staging]
+ok: [logs-staging]
+ok: [api-staging]
+
+TASK [Allow loopback traffic] **************************************************
+ok: [api-staging]
+ok: [payments-staging]
+ok: [logs-staging]
+
+TASK [Allow service port from localhost] ***************************************
+ok: [api-staging]
+ok: [payments-staging]
+ok: [logs-staging]
+
+TASK [Create persistent journal directory] *************************************
+ok: [api-staging]
+ok: [payments-staging]
+ok: [logs-staging]
+
+TASK [Create journald configuration directory] *********************************
+ok: [payments-staging]
+ok: [api-staging]
+ok: [logs-staging]
+
+TASK [Create journald configuration directory] *********************************
+ok: [payments-staging]
+ok: [logs-staging]
+ok: [api-staging]
+
+TASK [Configure persistent journald] *******************************************
+ok: [logs-staging]
+ok: [payments-staging]
+ok: [api-staging]
+
+TASK [Deploy logrotate configuration] ******************************************
+ok: [api-staging]
+ok: [payments-staging]
+ok: [logs-staging]
+
+PLAY RECAP *********************************************************************
+api-staging                : ok=22   changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+logs-staging               : ok=22   changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+payments-staging           : ok=22   changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+
