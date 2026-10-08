@@ -63,7 +63,9 @@ AWS Region: af-south-1
 |
 +-- Availability Zone B
     +-- Public Subnet
-    +-- Private Subnet
+    +-- Private Subnet 
+
+```
 
 ## 6. Growth Strategy
 
