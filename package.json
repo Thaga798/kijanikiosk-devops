@@ -5,6 +5,6 @@
     "build": "echo 'No compilation step needed for native Node.js app' && mkdir -p dist"
   },
   "dependencies": {
-    "soundcore- neckband-ears": "1.0.0"
+    "soundcore-neckband-ears": "1.0.0"
   }
 }
