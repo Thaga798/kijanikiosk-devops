@@ -14,15 +14,6 @@ pipeline {
     }
 
     stages {
-        stage('Environment Check') {
-            steps {
-                echo "Checking environment versions..."
-                sh 'echo "Build triggered for: $(git log -1 --pretty=%s)"'
-                sh 'node --version'
-                sh 'npm --version'
-            }
-        }
-
         stage('Build') {
             steps {
                 echo "Installing dependencies for ${APP_NAME}..."
@@ -39,34 +30,36 @@ pipeline {
                 '''
             }
         }
-
         stage('Test') {
             steps {
                 echo "Running test suite for ${APP_NAME}..."
-                // Plain command ensures stable exit code propagation to halt the pipeline on failure
                 sh 'npm test'
             }
             post {
                 always {
-                    // Publishes test tracking graphs even if the runner assets fail
                     junit allowEmptyResults: true,
                           testResults: 'test-results/*.xml'
-        	    }
+                }
+            }
+        }
+        stage('Archive') {
+            steps {
+                echo "Archiving build artifacts from ${BUILD_DIR}..."
+                // Archives the output folder with fingerprinting enabled
+                archiveArtifacts artifacts: "${BUILD_DIR}/**", fingerprint: true
             }
         }
     }
 
     post {
         success {
-            echo "Pipeline succeeded: ${APP_NAME} build ${BUILD_NUMBER}"
+            echo "Pipeline succeeded: ${APP_NAME} build ${BUILD_NUMBER}. Artifacts available at ${BUILD_URL}artifact/"
         }
         failure {
-            echo "Pipeline FAILED: ${APP_NAME} build ${BUILD_NUMBER} - check logs"
+            echo "Pipeline FAILED: ${APP_NAME} build ${BUILD_NUMBER} - a step exited with a non-zero status. Check build logs."
         }
         always {
-            echo "Build URL: ${BUILD_URL}"
-            echo "Cleaning up workspace to prevent stale artifacts..."
-            cleanWs() 
+            cleanWs()
         }
     }
 }
