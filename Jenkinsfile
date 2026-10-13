@@ -13,22 +13,25 @@ pipeline {
         disableConcurrentBuilds()
     }
 
-    stage('Build') {
-    steps {
-        echo "Installing dependencies for ${APP_NAME}..."
-        sh 'npm ci'
 
-        echo "Building application..."
-        sh 'npm run build'
+    stages {
+        stage('Build') {
+            steps {
+                echo "Installing dependencies for ${APP_NAME}..."
+                sh 'npm ci'
 
-        echo "Verifying build output..."
-        sh '''
-            set -e
-            test -d "${BUILD_DIR}" || { echo "ERROR: build directory not found"; exit 1; }
-            echo "Build output: $(ls ${BUILD_DIR} | wc -l) files in ${BUILD_DIR}/"
-        '''
+                echo "Building application..."
+                sh 'npm run build'
+
+                echo "Verifying build output..."
+                sh '''
+                    set -e
+                    test -d "${BUILD_DIR}" || { echo "ERROR: build directory not found"; exit 1; }
+                    echo "Build output: $(ls ${BUILD_DIR} | wc -l) files in ${BUILD_DIR}/"
+                '''
+            }
+        }
     }
-}
 
     post {
         success {
