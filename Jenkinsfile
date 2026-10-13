@@ -1,11 +1,6 @@
 pipeline {
     agent any
 
-tools {
-        nodejs 'node' // This tells Jenkins to inject the NodeJS & npm you configured
-    }
-
-
     stages {
         stage('Environment Check') {
             steps {
