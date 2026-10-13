@@ -2,7 +2,8 @@
   "name": "kijanikiosk-payments",
   "version": "1.0.0",
   "scripts": {
-    "build": "echo 'No compilation step needed for native Node.js app' && mkdir -p dist"
+    "build": "echo 'No compilation step needed for native Node.js app' && mkdir -p dist",
+    "test": "echo \"Error: deliberately failing tests\" && exit 1"
   },
   "dependencies": {}
 }
