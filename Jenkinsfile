@@ -73,29 +73,14 @@ pipeline {
                     usernameVariable: 'NEXUS_USER',
                     passwordVariable: 'NEXUS_PASS'
                 )]) {
-                    // Raw single-quoted shell block isolates configurations from pre-parsing truncation
-                    sh '''
-                        set -e
-
-                        # Calculate authorization token dynamically inside standard shell space
-                        NEXUS_TOKEN=$(echo -n "${NEXUS_USER}:${NEXUS_PASS}" | base64)
-
-                        # Write configuration parameters using literal heredoc boundaries to block text slicing
-                        cat > .npmrc << 'NPMRC'
-registry=http://192.168.100
-//192.168.100.53:8081/repository/npm-kijanikiosk/:_auth=TOKEN_PLACEHOLDER
-always-auth=true
-NPMRC
-
-                        # Safely inject the base64 token natively without exposing it to string interpolation
-                        sed -i "s|TOKEN_PLACEHOLDER|${NEXUS_TOKEN}|g" .npmrc
-
-                        # Execute the upload directly using our clean config context
-                        npm publish --registry http://192.168.100
-
-                        # Instantly remove the authentication file
-                        rm -f .npmrc
-                    '''
+                    // Strict single-quoted string definitions isolate lines from any internal character parsing bugs
+                    sh 'set -e'
+                    sh 'NEXUS_TOKEN=$(echo -n "${NEXUS_USER}:${NEXUS_PASS}" | base64)'
+                    sh 'echo "registry=http://192.168.100" > .npmrc'
+                    sh 'echo "//192.168.100.53:8081/repository/npm-kijanikiosk/:_auth=\${NEXUS_TOKEN}" >> .npmrc'
+                    sh 'echo "always-auth=true" >> .npmrc'
+                    sh 'npm publish --registry http://192.168.100'
+                    sh 'rm -f .npmrc'
                 }
             }
         }
@@ -107,3 +92,4 @@ NPMRC
         }
     }
 }
+
