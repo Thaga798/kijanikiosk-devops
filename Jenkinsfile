@@ -69,30 +69,26 @@ pipeline {
             steps {
                 echo "Securely publishing package to Nexus registry..."
                 withCredentials([usernamePassword(
-                    credentialsId: 'nexus-credentials',   // Verifies with your Jenkins store identifier
+                    credentialsId: 'nexus-credentials',
                     usernameVariable: 'NEXUS_USER',
                     passwordVariable: 'NEXUS_PASS'
                 )]) {
-                    // Triple single quotes preserve line structures natively
-                    sh '''
-                        set -e
+                    script {
+                        // 1. Generate the base64 token using a separate sh command to avoid script manipulation bugs
+                        def generatedToken = sh(script: 'echo -n "${NEXUS_USER}:${NEXUS_PASS}" | base64', returnStdout: true).trim()
 
-                        # Generate base64 token securely inside the shell layer to bypass sandbox blocks
-                        NEXUS_TOKEN=$(echo -n "${NEXUS_USER}:${NEXUS_PASS}" | base64)
-
-                        # Create the temporary config file using a strict heredoc wrapper
-                        cat > .npmrc << NPMRC
+                        // 2. Use the native Jenkins writeFile step to bypass the shell pre-parser completely
+                        writeFile file: '.npmrc', text: """
 registry=http://192.168.100
-//192.168.100.53:8081/repository/npm-kijanikiosk/:_auth=${NEXUS_TOKEN}
+//192.168.100.53:8081/repository/npm-kijanikiosk/:_auth=${generatedToken}
 always-auth=true
-NPMRC
+"""
+                        // 3. Publish the package artifact using short, clean strings
+                        sh 'npm publish --registry http://192.168.100'
 
-                        # Publish the package artifact to Nexus
-                        npm publish --registry http://192.168.100
-
-                        # Clean up the configuration file immediately
-                        rm -f .npmrc
-                    '''
+                        // 4. Remove the temporary file immediately
+                        sh 'rm -f .npmrc'
+                    }
                 }
             }
         }
