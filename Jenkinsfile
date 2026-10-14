@@ -73,29 +73,29 @@ pipeline {
                     usernameVariable: 'NEXUS_USER',
                     passwordVariable: 'NEXUS_PASS'
                 )]) {
-                    // Injecting network URLs through withEnv protects the string from character splitting bugs
-                    withEnv([
-                        'TARGET_REGISTRY=http://192.168.100',
-                        'AUTH_SCOPE=//192.168.100.53:8081/repository/npm-kijanikiosk/'
-                    ]) {
-                        sh '''
-                            set -e
+                    // Using single-quoted shell block matches the exact Osei requirements
+                    sh '''
+                        set -e
 
-                            # Generate the dynamic base64 authorization token
-                            NEXUS_TOKEN=$(echo -n "${NEXUS_USER}:${NEXUS_PASS}" | base64)
+                        # Generate base64 authorization token dynamically
+                        NEXUS_TOKEN=$(echo -n "${NEXUS_USER}:${NEXUS_PASS}" | base64)
 
-                            # Build the clean configuration using the protected environment variables
-                            echo "registry=${TARGET_REGISTRY}" > .npmrc
-                            echo "${AUTH_SCOPE}:_auth=${NEXUS_TOKEN}" >> .npmrc
-                            echo "always-auth=true" >> .npmrc
+                        # Reconstruct .npmrc file using a strict single-quoted heredoc string scope template
+                        cat > .npmrc << 'NPMRC'
+registry=http://192.168.100
+//192.168.100.53:8081/repository/npm-kijanikiosk/:_auth=${NEXUS_TOKEN}
+always-auth=true
+NPMRC
 
-                            # Publish the verified deployment package artifact
-                            npm publish --registry ${TARGET_REGISTRY}
+                        # Dynamically substitute token parameter within protected space execution lines
+                        sed -i "s|\\${NEXUS_TOKEN}|${NEXUS_TOKEN}|g" .npmrc
 
-                            # Instantly wipe the local configuration parameters
-                            rm -f .npmrc
-                        '''
-                    }
+                        # Automated deployment execution
+                        npm publish --registry http://192.168.100
+
+                        # Clean up sensitive security artifacts immediately inside container space
+                        rm -f .npmrc
+                    '''
                 }
             }
         }
