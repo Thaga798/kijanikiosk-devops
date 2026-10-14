@@ -69,27 +69,30 @@ pipeline {
             steps {
                 echo "Securely publishing package to Nexus registry..."
                 withCredentials([usernamePassword(
-                    credentialsId: 'nexus-credentials',
+                    credentialsId: 'nexus-credentials',   // Verifies with your Jenkins store identifier
                     usernameVariable: 'NEXUS_USER',
                     passwordVariable: 'NEXUS_PASS'
                 )]) {
-                    script {
-                        // 1. Generate base64 authorization token natively inside Groovy layer to bypass shell bugs
-                        def rawAuth = "${NEXUS_USER}:${NEXUS_PASS}"
-                        def encodedToken = rawAuth.bytes.encodeBase64().toString()
+                    // Triple single quotes preserve line structures natively
+                    sh '''
+                        set -e
 
-                        // 2. Use native Jenkins writeFile to create .npmrc without shell echoes or string slicing
-                        writeFile file: '.npmrc', text: """
+                        # Generate base64 token securely inside the shell layer to bypass sandbox blocks
+                        NEXUS_TOKEN=$(echo -n "${NEXUS_USER}:${NEXUS_PASS}" | base64)
+
+                        # Create the temporary config file using a strict heredoc wrapper
+                        cat > .npmrc << NPMRC
 registry=http://192.168.100
-//192.168.100.53:8081/repository/npm-kijanikiosk/:_auth=${encodedToken}
+//192.168.100.53:8081/repository/npm-kijanikiosk/:_auth=${NEXUS_TOKEN}
 always-auth=true
-"""
-                        // 3. Execute publication targeting the explicit unmanipulated network endpoint
-                        sh "npm publish --registry http://192.168.100"
+NPMRC
 
-                        // 4. Instantly clean up authentication secrets from the runner space
-                        sh "rm -f .npmrc"
-                    }
+                        # Publish the package artifact to Nexus
+                        npm publish --registry http://192.168.100
+
+                        # Clean up the configuration file immediately
+                        rm -f .npmrc
+                    '''
                 }
             }
         }
