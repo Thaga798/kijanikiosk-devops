@@ -73,24 +73,29 @@ pipeline {
                     usernameVariable: 'NEXUS_USER',
                     passwordVariable: 'NEXUS_PASS'
                 )]) {
-                    // Using single quotes (''') blocks Jenkins from misinterpreting colons and punctuation strings
-                    sh '''
-                        set -e
+                    // Injecting network URLs through withEnv protects the string from character splitting bugs
+                    withEnv([
+                        'TARGET_REGISTRY=http://192.168.100',
+                        'AUTH_SCOPE=//192.168.100.53:8081/repository/npm-kijanikiosk/'
+                    ]) {
+                        sh '''
+                            set -e
 
-                        # Generate base64 token securely at runtime
-                        NEXUS_TOKEN=$(echo -n "${NEXUS_USER}:${NEXUS_PASS}" | base64)
+                            # Generate the dynamic base64 authorization token
+                            NEXUS_TOKEN=$(echo -n "${NEXUS_USER}:${NEXUS_PASS}" | base64)
 
-                        # Write configuration parameters using raw strings to prevent text slicing
-                        echo 'registry=http://192.168.100' > .npmrc
-                        echo '//192.168.100.53:8081/repository/npm-kijanikiosk/:_auth='"${NEXUS_TOKEN}" >> .npmrc
-                        echo 'always-auth=true' >> .npmrc
+                            # Build the clean configuration using the protected environment variables
+                            echo "registry=${TARGET_REGISTRY}" > .npmrc
+                            echo "${AUTH_SCOPE}:_auth=${NEXUS_TOKEN}" >> .npmrc
+                            echo "always-auth=true" >> .npmrc
 
-                        # Execute the upload directly using our clean config context
-                        npm publish --registry http://192.168.100
+                            # Publish the verified deployment package artifact
+                            npm publish --registry ${TARGET_REGISTRY}
 
-                        # Instantly remove the authentication file
-                        rm -f .npmrc
-                    '''
+                            # Instantly wipe the local configuration parameters
+                            rm -f .npmrc
+                        '''
+                    }
                 }
             }
         }
