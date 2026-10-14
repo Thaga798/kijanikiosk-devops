@@ -69,30 +69,27 @@ pipeline {
             steps {
                 echo "Securely publishing package to Nexus registry..."
                 withCredentials([usernamePassword(
-                    credentialsId: 'nexus-credentials',   // The ID from your credentials store
-                    usernameVariable: 'NEXUS_USER',       // Variable name for the username
-                    passwordVariable: 'NEXUS_PASS'        // Variable name for the password
+                    credentialsId: 'nexus-credentials',
+                    usernameVariable: 'NEXUS_USER',
+                    passwordVariable: 'NEXUS_PASS'
                 )]) {
-                    // Triple single quotes ('') ensure absolute character safety across multiple lines
-                    sh '''
-                        set -e
+                    script {
+                        // 1. Generate base64 authorization token natively inside Groovy layer to bypass shell bugs
+                        def rawAuth = "${NEXUS_USER}:${NEXUS_PASS}"
+                        def encodedToken = rawAuth.bytes.encodeBase64().toString()
 
-                        # Generate base64 token from the injected credentials securely
-                        NEXUS_TOKEN=$(echo -n "${NEXUS_USER}:${NEXUS_PASS}" | base64)
-
-                        # Create .npmrc natively inside one shielded context execution block
-                        cat > .npmrc << NPMRC
+                        // 2. Use native Jenkins writeFile to create .npmrc without shell echoes or string slicing
+                        writeFile file: '.npmrc', text: """
 registry=http://192.168.100
-//192.168.100.53:8081/repository/npm-kijanikiosk/:_auth=${NEXUS_TOKEN}
+//192.168.100.53:8081/repository/npm-kijanikiosk/:_auth=${encodedToken}
 always-auth=true
-NPMRC
+"""
+                        // 3. Execute publication targeting the explicit unmanipulated network endpoint
+                        sh "npm publish --registry http://192.168.100"
 
-                        # Publish the package directly using the exact same target endpoint
-                        npm publish --registry http://192.168.100
-
-                        # Clean up the .npmrc with credentials immediately
-                        rm -f .npmrc
-                    '''
+                        // 4. Instantly clean up authentication secrets from the runner space
+                        sh "rm -f .npmrc"
+                    }
                 }
             }
         }
