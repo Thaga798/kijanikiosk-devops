@@ -5,9 +5,6 @@ pipeline {
         NODE_ENV  = 'test'
         BUILD_DIR = 'dist'
         APP_NAME  = 'kijanikiosk-payments'
-        
-        // Locked network boundaries mapping directly to your active laptop interface port
-        NEXUS_TARGET_REGISTRY = 'http://192.168.100'
     }
 
     options {
@@ -76,23 +73,29 @@ pipeline {
                     usernameVariable: 'NEXUS_USER',
                     passwordVariable: 'NEXUS_PASS'
                 )]) {
-                    script {
-                        // 1. Generate base64 token safely inside native Groovy layer to bypass all shell clipping
-                        def rawAuth = "${NEXUS_USER}:${NEXUS_PASS}"
-                        def encodedToken = rawAuth.bytes.encodeBase64().toString()
+                    // Raw single-quoted shell block isolates configurations from pre-parsing truncation
+                    sh '''
+                        set -e
 
-                        // 2. Write the .npmrc configuration file parameters using isolated file append wrappers
-                        writeFile file: '.npmrc', text: """
+                        # Calculate authorization token dynamically inside standard shell space
+                        NEXUS_TOKEN=$(echo -n "${NEXUS_USER}:${NEXUS_PASS}" | base64)
+
+                        # Write configuration parameters using literal heredoc boundaries to block text slicing
+                        cat > .npmrc << 'NPMRC'
 registry=http://192.168.100
-//192.168.100.53:8081/repository/npm-kijanikiosk/:_auth=${encodedToken}
+//192.168.100.53:8081/repository/npm-kijanikiosk/:_auth=TOKEN_PLACEHOLDER
 always-auth=true
-"""
-                        // 3. Publish the application asset cleanly over the network path
-                        sh "npm publish --registry ${NEXUS_TARGET_REGISTRY}"
+NPMRC
 
-                        // 4. Instantly purge temporary credential layout profiles
-                        sh "rm -f .npmrc"
-                    }
+                        # Safely inject the base64 token natively without exposing it to string interpolation
+                        sed -i "s|TOKEN_PLACEHOLDER|${NEXUS_TOKEN}|g" .npmrc
+
+                        # Execute the upload directly using our clean config context
+                        npm publish --registry http://192.168.100
+
+                        # Instantly remove the authentication file
+                        rm -f .npmrc
+                    '''
                 }
             }
         }
