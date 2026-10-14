@@ -5,6 +5,9 @@ pipeline {
         NODE_ENV  = 'test'
         BUILD_DIR = 'dist'
         APP_NAME  = 'kijanikiosk-payments'
+        
+        // Locked network boundaries mapping directly to your active laptop interface port
+        NEXUS_TARGET_REGISTRY = 'http://192.168.100'
     }
 
     options {
@@ -73,29 +76,23 @@ pipeline {
                     usernameVariable: 'NEXUS_USER',
                     passwordVariable: 'NEXUS_PASS'
                 )]) {
-                    // Using single-quoted shell block matches the exact Osei requirements
-                    sh '''
-                        set -e
+                    script {
+                        // 1. Generate base64 token safely inside native Groovy layer to bypass all shell clipping
+                        def rawAuth = "${NEXUS_USER}:${NEXUS_PASS}"
+                        def encodedToken = rawAuth.bytes.encodeBase64().toString()
 
-                        # Generate base64 authorization token dynamically
-                        NEXUS_TOKEN=$(echo -n "${NEXUS_USER}:${NEXUS_PASS}" | base64)
-
-                        # Reconstruct .npmrc file using a strict single-quoted heredoc string scope template
-                        cat > .npmrc << 'NPMRC'
+                        // 2. Write the .npmrc configuration file parameters using isolated file append wrappers
+                        writeFile file: '.npmrc', text: """
 registry=http://192.168.100
-//192.168.100.53:8081/repository/npm-kijanikiosk/:_auth=${NEXUS_TOKEN}
+//192.168.100.53:8081/repository/npm-kijanikiosk/:_auth=${encodedToken}
 always-auth=true
-NPMRC
+"""
+                        // 3. Publish the application asset cleanly over the network path
+                        sh "npm publish --registry ${NEXUS_TARGET_REGISTRY}"
 
-                        # Dynamically substitute token parameter within protected space execution lines
-                        sed -i "s|\\${NEXUS_TOKEN}|${NEXUS_TOKEN}|g" .npmrc
-
-                        # Automated deployment execution
-                        npm publish --registry http://192.168.100
-
-                        # Clean up sensitive security artifacts immediately inside container space
-                        rm -f .npmrc
-                    '''
+                        // 4. Instantly purge temporary credential layout profiles
+                        sh "rm -f .npmrc"
+                    }
                 }
             }
         }
