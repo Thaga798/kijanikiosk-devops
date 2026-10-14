@@ -79,15 +79,15 @@ pipeline {
                         # Calculate authorization token dynamically inside execution phase
                         NEXUS_TOKEN=$(echo -n "${NEXUS_USER}:${NEXUS_PASS}" | base64)
 
-                        # Explicitly write your active laptop IP address without dynamic variable expansions
+                        # Write config explicitly with strict string scoping to block shell truncation bugs
                         echo "registry=http://192.168.100" > .npmrc
                         echo "//192.168.100.53:8081/repository/npm-kijanikiosk/:_auth=${NEXUS_TOKEN}" >> .npmrc
                         echo "always-auth=true" >> .npmrc
 
-                        # Execute publication script targeting your active local network endpoint address directly
+                        # Execute publication script targeting the clean IP link directly
                         npm publish --registry http://192.168.100
 
-                        # Immediately remove temporary secret configuration file
+                        # Immediately remove temporary secret tracking file
                         rm -f .npmrc
                     '''
                 }
@@ -101,5 +101,3 @@ pipeline {
         }
     }
 }
-
-
