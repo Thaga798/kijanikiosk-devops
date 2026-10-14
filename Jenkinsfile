@@ -5,11 +5,6 @@ pipeline {
         NODE_ENV  = 'test'
         BUILD_DIR = 'dist'
         APP_NAME  = 'kijanikiosk-payments'
-        
-        // Universal Docker local host bridge network address
-        NEXUS_IP   = 'host.docker.internal'
-        NEXUS_PORT = '8081'
-        NEXUS_REPO = 'npm-kijanikiosk'
     }
 
     options {
@@ -84,15 +79,15 @@ pipeline {
                         # Calculate authorization token dynamically inside execution phase
                         NEXUS_TOKEN=$(echo -n "${NEXUS_USER}:${NEXUS_PASS}" | base64)
 
-                        # Reconstruct .npmrc file using the universal host internal DNS pointer
-                        echo "registry=http://${NEXUS_IP}:${NEXUS_PORT}/repository/${NEXUS_REPO}/" > .npmrc
-                        echo "//${NEXUS_IP}:${NEXUS_PORT}/repository/${NEXUS_REPO}/:_auth=${NEXUS_TOKEN}" >> .npmrc
+                        # Explicitly write your active laptop IP address without dynamic variable expansions
+                        echo "registry=http://192.168.100" > .npmrc
+                        echo "//192.168.100.53:8081/repository/npm-kijanikiosk/:_auth=${NEXUS_TOKEN}" >> .npmrc
                         echo "always-auth=true" >> .npmrc
 
-                        # Execute publication script targeting the internal host routing mapping
-                        npm publish --registry http://${NEXUS_IP}:${NEXUS_PORT}/repository/${NEXUS_REPO}/
+                        # Execute publication script targeting your active local network endpoint address directly
+                        npm publish --registry http://192.168.100
 
-                        # Immediately remove temporary secret tracking file
+                        # Immediately remove temporary secret configuration file
                         rm -f .npmrc
                     '''
                 }
@@ -106,3 +101,5 @@ pipeline {
         }
     }
 }
+
+
