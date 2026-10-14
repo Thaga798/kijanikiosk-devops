@@ -1,15 +1,17 @@
 pipeline {
     agent any
 
-environment {
-    PKG_VERSION = sh(script: "node -p \"require('./package.json').version\"",
-                    returnStdout: true).trim()
-    GIT_SHORT   = sh(script: 'git rev-parse --short HEAD',
-                    returnStdout: true).trim()
-    ARTIFACT_VERSION = "${PKG_VERSION}-${GIT_SHORT}"
-    // Result: "1.0.0-a3f2c8b"
-}
-
+    environment {
+        NODE_ENV  = 'test'
+        BUILD_DIR = 'dist'
+        APP_NAME  = 'kijanikiosk-payments'
+        
+        // Dynamically compute unique version payload tags for Nexus immutability
+        PKG_VERSION = sh(script: "node -p \"require('./package.json').version\"", returnStdout: true).trim()
+        GIT_SHORT   = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+        ARTIFACT_VERSION = "${PKG_VERSION}-${GIT_SHORT}"
+        TARBALL_NAME     = "${APP_NAME}-${ARTIFACT_VERSION}.tar.gz"
+    }
 
     options {
         timeout(time: 15, unit: 'MINUTES')
@@ -18,15 +20,24 @@ environment {
     }
 
     stages {
+        stage('Environment Check') {
+            steps {
+                echo "Initializing Build Metadata For: ${APP_NAME}"
+                echo "Target Artifact Build Version: ${ARTIFACT_VERSION}"
+                sh 'node --version'
+                sh 'npm --version'
+            }
+        }
+
         stage('Build') {
             steps {
-                echo "Installing dependencies for ${APP_NAME}..."
+                echo "Installing dependencies..."
                 sh 'npm ci'
 
                 echo "Building application..."
                 sh 'npm run build'
 
-                echo "Verifying build output..."
+                echo "Verifying build output directory..."
                 sh '''
                     set -e
                     test -d "${BUILD_DIR}" || { echo "ERROR: build directory not found"; exit 1; }
@@ -34,35 +45,69 @@ environment {
                 '''
             }
         }
+
         stage('Test') {
             steps {
-                echo "Running test suite for ${APP_NAME}..."
+                echo "Running target verification test suite..."
                 sh 'npm test'
             }
             post {
                 always {
-                    junit allowEmptyResults: true,
-                          testResults: 'test-results/*.xml'
+                    junit allowEmptyResults: true, testResults: 'test-results/*.xml'
                 }
             }
         }
-        stage('Archive') {
+
+        stage('Package') {
             steps {
-                echo "Archiving build artifacts from ${BUILD_DIR}..."
-                // Archives the output folder with fingerprinting enabled
-                archiveArtifacts artifacts: "${BUILD_DIR}/**", fingerprint: true
+                echo "Compressing deployment tarball: ${TARBALL_NAME}..."
+                sh "tar -czf ${TARBALL_NAME} ${BUILD_DIR}/ package.json"
+                sh "ls -lh ${TARBALL_NAME}"
+            }
+        }
+
+        stage('Publish') {
+            steps {
+                echo "Securely publishing package to Nexus registry..."
+                // Inject credentials safely using the usernamePassword block binding pattern
+                withCredentials([usernamePassword(
+                    credentialsId: 'nexus-credentials',   // The ID you created in the Jenkins credentials store
+                    usernameVariable: 'NEXUS_USER',       // Temporary variable name for the username
+                    passwordVariable: 'NEXUS_PASS'        // Temporary variable name for the password
+                )]) {
+                    sh '''
+                        set -e
+
+                        # Generate base64 token from the injected credentials dynamically
+                        NEXUS_TOKEN=$(echo -n "${NEXUS_USER}:${NEXUS_PASS}" | base64)
+
+                        # Create a clean .npmrc file pointing to your local container's npm registry mapping
+                        cat > .npmrc << NPMRC
+registry=http://localhost:8081/repository/npm-kijanikiosk/
+//localhost:8081/repository/npm-kijanikiosk/:_auth=${NEXUS_TOKEN}
+always-auth=true
+NPMRC
+
+                        # Publish the verified package artifact to Nexus
+                        npm publish --registry http://localhost:8081/repository/npm-kijanikiosk/
+
+                        # Clean up the sensitive config file instantly inside the workspace environment
+                        rm -f .npmrc
+                    '''
+                }
             }
         }
     }
 
     post {
         success {
-            echo "Pipeline succeeded: ${APP_NAME} build ${BUILD_NUMBER}. Artifacts available at ${BUILD_URL}artifact/"
+            echo "Pipeline succeeded: ${APP_NAME} build ${BUILD_NUMBER} uploaded as version ${ARTIFACT_VERSION}"
         }
         failure {
-            echo "Pipeline FAILED: ${APP_NAME} build ${BUILD_NUMBER} - a step exited with a non-zero status. Check build logs."
+            echo "Pipeline FAILED: ${APP_NAME} build ${BUILD_NUMBER} - verify execution logs."
         }
         always {
+            // Final workspace cleanup step to guarantee zero lingering artifacts
             cleanWs()
         }
     }
