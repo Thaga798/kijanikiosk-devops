@@ -6,14 +6,10 @@ pipeline {
         BUILD_DIR = 'dist'
         APP_NAME  = 'kijanikiosk-payments'
         
-        // Centralized IP address routing variable to guarantee zero string truncation
-        NEXUS_REGISTRY_URL = 'http://192.168.0'
-        
-        // Dynamically compute unique version payload tags for Nexus immutability
-        PKG_VERSION = sh(script: "node -p \"require('./package.json').version\"", returnStdout: true).trim()
-        GIT_SHORT   = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-        ARTIFACT_VERSION = "${PKG_VERSION}-${GIT_SHORT}"
-        TARBALL_NAME     = "${APP_NAME}-${ARTIFACT_VERSION}.tar.gz"
+        // Hardcoded network parameters wrapped as isolated strings to guarantee safe execution
+        NEXUS_IP   = '192.168.0.100'
+        NEXUS_PORT = '8081'
+        NEXUS_REPO = 'npm-kijanikiosk'
     }
 
     options {
@@ -26,7 +22,6 @@ pipeline {
         stage('Environment Check') {
             steps {
                 echo "Initializing Build Metadata For: ${APP_NAME}"
-                echo "Target Artifact Build Version: ${ARTIFACT_VERSION}"
                 sh 'node --version'
                 sh 'npm --version'
             }
@@ -63,38 +58,41 @@ pipeline {
 
         stage('Package') {
             steps {
-                echo "Compressing deployment tarball: ${TARBALL_NAME}..."
-                sh "tar -czf ${TARBALL_NAME} ${BUILD_DIR}/ package.json"
-                sh "ls -lh ${TARBALL_NAME}"
+                script {
+                    def pkgVer = sh(script: "node -p \"require('./package.json').version\"", returnStdout: true).trim()
+                    def gitSHA = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                    env.VERSION_TAG = "${pkgVer}-${gitSHA}"
+                    env.TARBALL_NAME = "${APP_NAME}-${env.VERSION_TAG}.tar.gz"
+                }
+                echo "Compressing deployment tarball: ${env.TARBALL_NAME}..."
+                sh "tar -czf ${env.TARBALL_NAME} ${BUILD_DIR}/ package.json"
+                sh "ls -lh ${env.TARBALL_NAME}"
             }
         }
 
         stage('Publish') {
             steps {
                 echo "Securely publishing package to Nexus registry..."
-                // Inject credentials safely using the usernamePassword block binding pattern
                 withCredentials([usernamePassword(
-                    credentialsId: 'nexus-credentials',   // The ID from the credentials store
-                    usernameVariable: 'NEXUS_USER',       // Variable name for the username
-                    passwordVariable: 'NEXUS_PASS'        // Variable name for the password
+                    credentialsId: 'nexus-credentials',
+                    usernameVariable: 'NEXUS_USER',
+                    passwordVariable: 'NEXUS_PASS'
                 )]) {
                     sh '''
                         set -e
 
-                        # Generate base64 token from the injected credentials dynamically
+                        # Calculate authorization token dynamically inside execution phase
                         NEXUS_TOKEN=$(echo -n "${NEXUS_USER}:${NEXUS_PASS}" | base64)
 
-                        # Create a clean .npmrc file using our safe environment variable
-                        cat > .npmrc << NPMRC
-registry=${NEXUS_REGISTRY_URL}
-//192.168.0.100:8081/repository/npm-kijanikiosk/:_auth=${NEXUS_TOKEN}
-always-auth=true
-NPMRC
+                        # Reconstruct .npmrc file safely without string parsing limitations
+                        echo "registry=http://${NEXUS_IP}:${NEXUS_PORT}/repository/${NEXUS_REPO}/" > .npmrc
+                        echo "//${NEXUS_IP}:${NEXUS_PORT}/repository/${NEXUS_REPO}/:_auth=${NEXUS_TOKEN}" >> .npmrc
+                        echo "always-auth=true" >> .npmrc
 
-                        # Automated deployment execution
-                        npm publish --registry ${NEXUS_REGISTRY_URL}
+                        # Execute publication script 
+                        npm publish --registry http://${NEXUS_IP}:${NEXUS_PORT}/repository/${NEXUS_REPO}/
 
-                        # Clean up the sensitive config file instantly inside the workspace environment
+                        # Immediately remove temporary secret tracking file
                         rm -f .npmrc
                     '''
                 }
@@ -103,12 +101,6 @@ NPMRC
     }
 
     post {
-        success {
-            echo "Pipeline succeeded: ${APP_NAME} build ${BUILD_NUMBER} uploaded as version ${ARTIFACT_VERSION}"
-        }
-        failure {
-            echo "Pipeline FAILED: ${APP_NAME} build ${BUILD_NUMBER} - verify execution logs."
-        }
         always {
             cleanWs()
         }
