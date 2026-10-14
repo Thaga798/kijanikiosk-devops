@@ -73,22 +73,22 @@ pipeline {
                     usernameVariable: 'NEXUS_USER',
                     passwordVariable: 'NEXUS_PASS'
                 )]) {
+                    // Using single quotes (''') blocks Jenkins from misinterpreting colons and punctuation strings
                     sh '''
                         set -e
 
-                        # Generate base64 token from the injected credentials cleanly
+                        # Generate base64 token securely at runtime
                         NEXUS_TOKEN=$(echo -n "${NEXUS_USER}:${NEXUS_PASS}" | base64)
 
-                        # Create the temporary config file using a strict heredoc wrapper
-                        cat > .npmrc << NPMRC
-registry=http://192.168.100
-//192.168.100.53:8081/repository/npm-kijanikiosk/:_authToken=${NEXUS_TOKEN}
-NPMRC
+                        # Write configuration parameters using raw strings to prevent text slicing
+                        echo 'registry=http://192.168.100' > .npmrc
+                        echo '//192.168.100.53:8081/repository/npm-kijanikiosk/:_auth='"${NEXUS_TOKEN}" >> .npmrc
+                        echo 'always-auth=true' >> .npmrc
 
-                        # Publish the package cleanly
+                        # Execute the upload directly using our clean config context
                         npm publish --registry http://192.168.100
 
-                        # Clean up the .npmrc with credentials immediately
+                        # Instantly remove the authentication file
                         rm -f .npmrc
                     '''
                 }
