@@ -76,18 +76,19 @@ pipeline {
                     sh '''
                         set -e
 
-                        # Calculate authorization token dynamically inside execution phase
+                        # Generate base64 token from the injected credentials cleanly
                         NEXUS_TOKEN=$(echo -n "${NEXUS_USER}:${NEXUS_PASS}" | base64)
 
-                        # Write config explicitly with strict string scoping to block shell truncation bugs
-                        echo "registry=http://192.168.100" > .npmrc
-                        echo "//192.168.100.53:8081/repository/npm-kijanikiosk/:_auth=${NEXUS_TOKEN}" >> .npmrc
-                        echo "always-auth=true" >> .npmrc
+                        # Create the temporary config file using a strict heredoc wrapper
+                        cat > .npmrc << NPMRC
+registry=http://192.168.100
+//192.168.100.53:8081/repository/npm-kijanikiosk/:_authToken=${NEXUS_TOKEN}
+NPMRC
 
-                        # Execute publication script targeting the clean IP link directly
+                        # Publish the package cleanly
                         npm publish --registry http://192.168.100
 
-                        # Immediately remove temporary secret tracking file
+                        # Clean up the .npmrc with credentials immediately
                         rm -f .npmrc
                     '''
                 }
