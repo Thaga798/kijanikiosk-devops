@@ -81,15 +81,15 @@ pipeline {
                         # Generate base64 token from the injected credentials dynamically
                         NEXUS_TOKEN=$(echo -n "${NEXUS_USER}:${NEXUS_PASS}" | base64)
 
-                        # Create a clean .npmrc file pointing to your local container's npm registry mapping
+                        # Create a clean .npmrc file pointing to your laptop's actual local IP address routing path
                         cat > .npmrc << NPMRC
-registry=http://localhost:8081/repository/npm-kijanikiosk/
-//localhost:8081/repository/npm-kijanikiosk/:_auth=${NEXUS_TOKEN}
+registry=http://192.168.0
+//192.168.0.100:8081/repository/npm-kijanikiosk/:_auth=${NEXUS_TOKEN}
 always-auth=true
 NPMRC
 
-                        # Publish the verified package artifact to Nexus
-                        npm publish --registry http://localhost:8081/repository/npm-kijanikiosk/
+                        # Automated deployment execution over the network bridge interface channel
+                        npm publish --registry http://192.168.0
 
                         # Clean up the sensitive config file instantly inside the workspace environment
                         rm -f .npmrc
@@ -107,8 +107,8 @@ NPMRC
             echo "Pipeline FAILED: ${APP_NAME} build ${BUILD_NUMBER} - verify execution logs."
         }
         always {
-            // Final workspace cleanup step to guarantee zero lingering artifacts
             cleanWs()
         }
     }
 }
+
