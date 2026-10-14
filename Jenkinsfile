@@ -7,7 +7,7 @@ pipeline {
         APP_NAME  = 'kijanikiosk-payments'
         
         // Docker internal bridge network gateway IP to guarantee stable container-to-container routing
-        NEXUS_IP   = '172.17.0.1'
+        NEXUS_IP   = '192.168.100.53'
         NEXUS_PORT = '8081'
         NEXUS_REPO = 'npm-kijanikiosk'
     }
