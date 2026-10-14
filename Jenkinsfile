@@ -1,11 +1,15 @@
 pipeline {
     agent any
 
-    environment {
-        NODE_ENV  = 'test'
-        BUILD_DIR = 'dist'
-        APP_NAME  = 'kijanikiosk-payments'
-    }
+environment {
+    PKG_VERSION = sh(script: "node -p \"require('./package.json').version\"",
+                    returnStdout: true).trim()
+    GIT_SHORT   = sh(script: 'git rev-parse --short HEAD',
+                    returnStdout: true).trim()
+    ARTIFACT_VERSION = "${PKG_VERSION}-${GIT_SHORT}"
+    // Result: "1.0.0-a3f2c8b"
+}
+
 
     options {
         timeout(time: 15, unit: 'MINUTES')
