@@ -6,6 +6,9 @@ pipeline {
         BUILD_DIR = 'dist'
         APP_NAME  = 'kijanikiosk-payments'
         
+        // Centralized IP address routing variable to guarantee zero string truncation
+        NEXUS_REGISTRY_URL = 'http://192.168.0'
+        
         // Dynamically compute unique version payload tags for Nexus immutability
         PKG_VERSION = sh(script: "node -p \"require('./package.json').version\"", returnStdout: true).trim()
         GIT_SHORT   = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
@@ -71,9 +74,9 @@ pipeline {
                 echo "Securely publishing package to Nexus registry..."
                 // Inject credentials safely using the usernamePassword block binding pattern
                 withCredentials([usernamePassword(
-                    credentialsId: 'nexus-credentials',   // The ID you created in the Jenkins credentials store
-                    usernameVariable: 'NEXUS_USER',       // Temporary variable name for the username
-                    passwordVariable: 'NEXUS_PASS'        // Temporary variable name for the password
+                    credentialsId: 'nexus-credentials',   // The ID from the credentials store
+                    usernameVariable: 'NEXUS_USER',       // Variable name for the username
+                    passwordVariable: 'NEXUS_PASS'        // Variable name for the password
                 )]) {
                     sh '''
                         set -e
@@ -81,15 +84,15 @@ pipeline {
                         # Generate base64 token from the injected credentials dynamically
                         NEXUS_TOKEN=$(echo -n "${NEXUS_USER}:${NEXUS_PASS}" | base64)
 
-                        # Create a clean .npmrc file pointing to your laptop's actual local IP address routing path
+                        # Create a clean .npmrc file using our safe environment variable
                         cat > .npmrc << NPMRC
-registry=http://192.168.0
+registry=${NEXUS_REGISTRY_URL}
 //192.168.0.100:8081/repository/npm-kijanikiosk/:_auth=${NEXUS_TOKEN}
 always-auth=true
 NPMRC
 
-                        # Automated deployment execution over the network bridge interface channel
-                        npm publish --registry http://192.168.0
+                        # Automated deployment execution
+                        npm publish --registry ${NEXUS_REGISTRY_URL}
 
                         # Clean up the sensitive config file instantly inside the workspace environment
                         rm -f .npmrc
@@ -111,4 +114,3 @@ NPMRC
         }
     }
 }
-
