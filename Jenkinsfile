@@ -69,18 +69,30 @@ pipeline {
             steps {
                 echo "Securely publishing package to Nexus registry..."
                 withCredentials([usernamePassword(
-                    credentialsId: 'nexus-credentials',
-                    usernameVariable: 'NEXUS_USER',
-                    passwordVariable: 'NEXUS_PASS'
+                    credentialsId: 'nexus-credentials',   // The ID from your credentials store
+                    usernameVariable: 'NEXUS_USER',       // Variable name for the username
+                    passwordVariable: 'NEXUS_PASS'        // Variable name for the password
                 )]) {
-                    // Strict single-quoted string definitions isolate lines from any internal character parsing bugs
-                    sh 'set -e'
-                    sh 'NEXUS_TOKEN=$(echo -n "${NEXUS_USER}:${NEXUS_PASS}" | base64)'
-                    sh 'echo "registry=http://192.168.100" > .npmrc'
-                    sh 'echo "//192.168.100.53:8081/repository/npm-kijanikiosk/:_auth=\${NEXUS_TOKEN}" >> .npmrc'
-                    sh 'echo "always-auth=true" >> .npmrc'
-                    sh 'npm publish --registry http://192.168.100'
-                    sh 'rm -f .npmrc'
+                    // Triple single quotes ('') ensure absolute character safety across multiple lines
+                    sh '''
+                        set -e
+
+                        # Generate base64 token from the injected credentials securely
+                        NEXUS_TOKEN=$(echo -n "${NEXUS_USER}:${NEXUS_PASS}" | base64)
+
+                        # Create .npmrc natively inside one shielded context execution block
+                        cat > .npmrc << NPMRC
+registry=http://192.168.100
+//192.168.100.53:8081/repository/npm-kijanikiosk/:_auth=${NEXUS_TOKEN}
+always-auth=true
+NPMRC
+
+                        # Publish the package directly using the exact same target endpoint
+                        npm publish --registry http://192.168.100
+
+                        # Clean up the .npmrc with credentials immediately
+                        rm -f .npmrc
+                    '''
                 }
             }
         }
@@ -92,4 +104,3 @@ pipeline {
         }
     }
 }
-
