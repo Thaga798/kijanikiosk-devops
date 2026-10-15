@@ -38,22 +38,6 @@ pipeline {
             }
         }
 
-        stage('Credential Masking Test') {
-    steps {
-        withCredentials([
-            usernamePassword(
-                credentialsId: 'nexus-credentials',
-                usernameVariable: 'NEXUS_USER',
-                passwordVariable: 'NEXUS_PASS'
-            )
-        ]) {
-            sh '''
-                set +x
-                echo "User: $NEXUS_USER Pass: $NEXUS_PASS"
-            '''
-        }
-    }
-}
 
         stage('Build') {
             steps {
