@@ -6,7 +6,7 @@ pipeline {
         BUILD_DIR = 'dist'
         APP_NAME  = 'kijanikiosk-payments'
         
-        // Centralized environment definition blocks character-splitting bugs
+        // Centralized environment target endpoint
         NEXUS_REGISTRY = 'http://192.168.100.53:8081/repository/npm-kijanikiosk/'
     }
 
@@ -76,14 +76,23 @@ pipeline {
                     usernameVariable: 'NEXUS_USER',
                     passwordVariable: 'NEXUS_PASS'
                 )]) {
-                    // Linear single quote parameters guarantee zero variable string clipping errors
-                    sh 'set -e'
-                    sh 'NEXUS_TOKEN=$(echo -n "${NEXUS_USER}:${NEXUS_PASS}" | base64)'
-                    sh 'echo "registry=http://192.168.100.53:8081/repository/npm-kijanikiosk/" > .npmrc'
-                    sh 'echo "//192.168.100.53:8081/repository/npm-kijanikiosk/:_auth=\${NEXUS_TOKEN}" >> .npmrc'
-                    sh 'echo "always-auth=true" >> .npmrc'
-                    sh 'npm publish --registry ${NEXUS_REGISTRY}'
-                    sh 'rm -f .npmrc'
+                    script {
+                        // 1. Generate the Base64 token safely inside the native Groovy execution engine
+                        def rawAuth = "${NEXUS_USER}:${NEXUS_PASS}"
+                        def encodedToken = rawAuth.bytes.encodeBase64().toString()
+
+                        // 2. Use Jenkins' native writeFile to generate .npmrc directly from memory, blocking all token loss
+                        writeFile file: '.npmrc', text: """
+registry=http://192.168.100.53:8081/repository/npm-kijanikiosk/
+//192.168.100.53:8081/repository/npm-kijanikiosk/:_auth=${encodedToken}
+always-auth=true
+"""
+                        // 3. Publish the package artifact using short, clean execution blocks
+                        sh "npm publish --registry ${NEXUS_REGISTRY}"
+
+                        // 4. Clean up authentication configuration records immediately
+                        sh "rm -f .npmrc"
+                    }
                 }
             }
         }
