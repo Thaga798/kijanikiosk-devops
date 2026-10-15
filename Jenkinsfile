@@ -6,7 +6,7 @@ pipeline {
         BUILD_DIR = 'dist'
         APP_NAME  = 'kijanikiosk-payments'
         
-        // Locked network registry definition boundary to guarantee zero text slicing
+        // Wrapped network definition target
         NEXUS_REGISTRY_TARGET = 'http://192.168.100'
     }
 
@@ -86,8 +86,8 @@ registry=http://192.168.100
 //192.168.100.53:8081/repository/npm-kijanikiosk/:_auth=${token}
 always-auth=true
 """
-                        // 3. Execute the upload using the unmanipulated global environmental variable target
-                        sh 'npm publish --registry ${NEXUS_REGISTRY_TARGET}'
+                        // 3. The escaped backslash codes protect this execution string from truncation bugs
+                        sh 'npm publish --registry \$NEXUS_REGISTRY_TARGET'
 
                         // 4. Instantly clean configuration secrets from the runner space
                         sh 'rm -f .npmrc'
@@ -103,3 +103,4 @@ always-auth=true
         }
     }
 }
+
