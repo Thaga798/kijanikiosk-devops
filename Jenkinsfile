@@ -2,12 +2,10 @@ pipeline {
     agent any
 
     environment {
-        NODE_ENV  = 'test'
-        BUILD_DIR = 'dist'
-        APP_NAME  = 'kijanikiosk-payments'
-        
-        // Wrapped network definition target
-        NEXUS_REGISTRY_TARGET = 'http://192.168.100'
+        NODE_ENV       = 'test'
+        BUILD_DIR      = 'dist'
+        APP_NAME       = 'kijanikiosk-payments'
+        NEXUS_REGISTRY = 'http://nexus:8081/repository/npm-kijanikiosk/'
     }
 
     options {
@@ -27,29 +25,39 @@ pipeline {
 
         stage('Build') {
             steps {
-                echo "Installing dependencies..."
+                echo 'Installing dependencies...'
                 sh 'npm ci'
 
-                echo "Building application..."
+                echo 'Building application...'
                 sh 'npm run build'
 
-                echo "Verifying build output directory..."
+                echo 'Verifying build output directory...'
                 sh '''
-                    set -e
-                    test -d "${BUILD_DIR}" || { echo "ERROR: build directory not found"; exit 1; }
-                    echo "Build output: $(ls ${BUILD_DIR} | wc -l) files in ${BUILD_DIR}/"
+                    set -eu
+                    test -d "$BUILD_DIR" || {
+                        echo "ERROR: build directory not found"
+                        exit 1
+                    }
+
+                    FILE_COUNT=$(find "$BUILD_DIR" -type f | wc -l)
+                    echo "Build output: $FILE_COUNT files in $BUILD_DIR/"
+                    test "$FILE_COUNT" -gt 0
                 '''
             }
         }
 
         stage('Test') {
             steps {
-                echo "Running target verification test suite..."
+                echo 'Running verification test suite...'
                 sh 'npm test'
             }
+
             post {
                 always {
-                    junit allowEmptyResults: true, testResults: 'test-results/*.xml'
+                    junit(
+                        allowEmptyResults: true,
+                        testResults: 'test-results/*.xml'
+                    )
                 }
             }
         }
@@ -57,40 +65,80 @@ pipeline {
         stage('Package') {
             steps {
                 script {
-                    def pkgVer = sh(script: "node -p \"require('./package.json').version\"", returnStdout: true).trim()
-                    def gitSHA = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                    def pkgVer = sh(
+                        script: "node -p \"require('./package.json').version\"",
+                        returnStdout: true
+                    ).trim()
+
+                    def gitSHA = sh(
+                        script: 'git rev-parse --short HEAD',
+                        returnStdout: true
+                    ).trim()
+
                     env.VERSION_TAG = "${pkgVer}-${gitSHA}"
                     env.TARBALL_NAME = "${APP_NAME}-${env.VERSION_TAG}.tar.gz"
                 }
-                echo "Compressing deployment tarball: ${env.TARBALL_NAME}..."
-                sh "tar -czf ${env.TARBALL_NAME} ${BUILD_DIR}/ package.json"
-                sh "ls -lh ${env.TARBALL_NAME}"
+
+                echo "Creating artifact: ${env.TARBALL_NAME}"
+
+                sh '''
+                    set -eu
+                    tar -czf "$TARBALL_NAME" "$BUILD_DIR/" package.json
+                    ls -lh "$TARBALL_NAME"
+                '''
+
+                archiveArtifacts(
+                    artifacts: '*.tar.gz',
+                    fingerprint: true
+                )
             }
         }
 
         stage('Publish') {
             steps {
-                echo "Securely publishing package to Nexus registry..."
-                withCredentials([usernamePassword(
-                    credentialsId: 'nexus-credentials',
-                    usernameVariable: 'NEXUS_USER',
-                    passwordVariable: 'NEXUS_PASS'
-                )]) {
+                echo "Publishing package to Nexus..."
+
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'nexus-credentials',
+                        usernameVariable: 'NEXUS_USER',
+                        passwordVariable: 'NEXUS_PASS'
+                    )
+                ]) {
                     script {
-                        // 1. Safe base64 token generation using standard Unix shell variables inside a short execution line
-                        def token = sh(script: 'echo -n "$NEXUS_USER:$NEXUS_PASS" | base64', returnStdout: true).trim()
+                        def token = sh(
+                            script: '''
+                                set +x
+                                printf '%s' "$NEXUS_USER:$NEXUS_PASS" |
+                                    base64 |
+                                    tr -d '\\n'
+                            ''',
+                            returnStdout: true
+                        ).trim()
 
-                        // 2. Generate configuration file parameters natively from memory to bypass character splitting
-                        writeFile file: '.npmrc', text: """
-registry=http://192.168.100
-//192.168.100.53:8081/repository/npm-kijanikiosk/:_auth=${token}
+                        try {
+                            writeFile(
+                                file: '.npmrc',
+                                text: """\
+registry=${env.NEXUS_REGISTRY}
 always-auth=true
+//nexus:8081/repository/npm-kijanikiosk/:_auth=${token}
 """
-                        // 3. The escaped backslash codes protect this execution string from truncation bugs
-                        sh 'npm publish --registry \$NEXUS_REGISTRY_TARGET'
+                            )
 
-                        // 4. Instantly clean configuration secrets from the runner space
-                        sh 'rm -f .npmrc'
+                            sh '''
+                                set -eu
+                                set +x
+
+                                npm publish \
+                                    --registry="$NEXUS_REGISTRY"
+                            '''
+                        } finally {
+                            sh(
+                                script: 'rm -f .npmrc',
+                                label: 'Remove temporary npm credentials'
+                            )
+                        }
                     }
                 }
             }
