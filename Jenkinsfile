@@ -6,8 +6,8 @@ pipeline {
         BUILD_DIR = 'dist'
         APP_NAME  = 'kijanikiosk-payments'
         
-        // Stabilized IP matching your active session network layout
-        NEXUS_REGISTRY = 'http://192.168.100'
+        // Locked network registry definition boundary to guarantee zero text slicing
+        NEXUS_REGISTRY_TARGET = 'http://192.168.100'
     }
 
     options {
@@ -76,26 +76,22 @@ pipeline {
                     usernameVariable: 'NEXUS_USER',
                     passwordVariable: 'NEXUS_PASS'
                 )]) {
-                    // Double quotes let us inject variables cleanly, escaping the shell-bound dollars safely
-                    sh """
-                        set -e
+                    script {
+                        // 1. Safe base64 token generation using standard Unix shell variables inside a short execution line
+                        def token = sh(script: 'echo -n "$NEXUS_USER:$NEXUS_PASS" | base64', returnStdout: true).trim()
 
-                        # Generate token via standard shell utility to completely bypass Groovy sandbox limits
-                        NEXUS_TOKEN=\$(echo -n "\${NEXUS_USER}:\${NEXUS_PASS}" | base64)
-
-                        # Create the configuration file using a clean shell heredoc block
-                        cat > .npmrc << NPMRC
+                        // 2. Generate configuration file parameters natively from memory to bypass character splitting
+                        writeFile file: '.npmrc', text: """
 registry=http://192.168.100
-//192.168.100.53:8081/repository/npm-kijanikiosk/:_auth=\${NEXUS_TOKEN}
+//192.168.100.53:8081/repository/npm-kijanikiosk/:_auth=${token}
 always-auth=true
-NPMRC
+"""
+                        // 3. Execute the upload using the unmanipulated global environmental variable target
+                        sh 'npm publish --registry ${NEXUS_REGISTRY_TARGET}'
 
-                        # Publish the validated package directly into Nexus
-                        npm publish --registry http://192.168.100
-
-                        # Instantly wipe the local authentication secrets file
-                        rm -f .npmrc
-                    """
+                        // 4. Instantly clean configuration secrets from the runner space
+                        sh 'rm -f .npmrc'
+                    }
                 }
             }
         }
