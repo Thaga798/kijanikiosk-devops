@@ -5,6 +5,9 @@ pipeline {
         NODE_ENV  = 'test'
         BUILD_DIR = 'dist'
         APP_NAME  = 'kijanikiosk-payments'
+        
+        // Centralized environment definition blocks character-splitting bugs
+        NEXUS_REGISTRY = 'http://192.168.100.53:8081/repository/npm-kijanikiosk/'
     }
 
     options {
@@ -73,22 +76,14 @@ pipeline {
                     usernameVariable: 'NEXUS_USER',
                     passwordVariable: 'NEXUS_PASS'
                 )]) {
-                    script {
-                        // 1. Generate the base64 token using a separate sh command to avoid script manipulation bugs
-                        def generatedToken = sh(script: 'echo -n "${NEXUS_USER}:${NEXUS_PASS}" | base64', returnStdout: true).trim()
-
-                        // 2. Use the native Jenkins writeFile step to bypass the shell pre-parser completely
-                        writeFile file: '.npmrc', text: """
-registry=http://192.168.100
-//192.168.100.53:8081/repository/npm-kijanikiosk/:_auth=${generatedToken}
-always-auth=true
-"""
-                        // 3. Publish the package artifact using short, clean strings
-                        sh 'npm publish --registry http://192.168.100'
-
-                        // 4. Remove the temporary file immediately
-                        sh 'rm -f .npmrc'
-                    }
+                    // Linear single quote parameters guarantee zero variable string clipping errors
+                    sh 'set -e'
+                    sh 'NEXUS_TOKEN=$(echo -n "${NEXUS_USER}:${NEXUS_PASS}" | base64)'
+                    sh 'echo "registry=http://192.168.100.53:8081/repository/npm-kijanikiosk/" > .npmrc'
+                    sh 'echo "//192.168.100.53:8081/repository/npm-kijanikiosk/:_auth=\${NEXUS_TOKEN}" >> .npmrc'
+                    sh 'echo "always-auth=true" >> .npmrc'
+                    sh 'npm publish --registry ${NEXUS_REGISTRY}'
+                    sh 'rm -f .npmrc'
                 }
             }
         }
