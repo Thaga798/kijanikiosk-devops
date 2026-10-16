@@ -65,7 +65,7 @@ pipeline {
 
             steps {
                 checkout scm
-                sh 'npm ci --invalid-flag-intentional'
+                sh 'npm ci'
                 sh 'npm run lint'
             }
 
