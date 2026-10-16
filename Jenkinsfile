@@ -1,4 +1,3 @@
-
 pipeline {
     agent none
 
@@ -42,10 +41,32 @@ pipeline {
                     env.ARTIFACT_VERSION =
                         "${env.PKG_VERSION}-${env.GIT_SHORT}"
 
-                    echo "Package: ${env.APP_NAME}"
+                    echo "Application: ${env.APP_NAME}"
+                    echo "Package version: ${env.PKG_VERSION}"
+                    echo "Git revision: ${env.GIT_SHORT}"
                     echo "Artifact version: ${env.ARTIFACT_VERSION}"
-                    echo "Registry: ${env.NEXUS_URL}"
                 }
+            }
+
+            post {
+                always {
+                    cleanWs()
+                }
+            }
+        }
+
+        stage('Lint') {
+            agent {
+                docker {
+                    image 'kijanikiosk-node18-agent:1.0'
+                    args '--network kijanikiosk-ci'
+                }
+            }
+
+            steps {
+                checkout scm
+                sh 'npm ci'
+                sh 'npm run lint'
             }
 
             post {
@@ -66,29 +87,28 @@ pipeline {
             steps {
                 checkout scm
 
-                echo 'Checking container runtime versions...'
-                sh 'node --version'
-                sh 'npm --version'
-                sh 'git --version'
-
-                echo 'Installing dependencies...'
-                sh 'npm ci'
-
-                echo 'Building application...'
-                sh 'npm run build'
-
-                echo 'Verifying build output...'
                 sh '''
                     set -eu
+
+                    echo "Node.js version:"
+                    node --version
+
+                    echo "npm version:"
+                    npm --version
+
+                    echo "Git version:"
+                    git --version
+
+                    npm ci
+                    npm run build
+
                     test -d "$BUILD_DIR"
+                    test -n "$(find "$BUILD_DIR" -type f -print -quit)"
 
-                    FILE_COUNT=$(find "$BUILD_DIR" -type f | wc -l)
-                    echo "Build output files: $FILE_COUNT"
-
-                    test "$FILE_COUNT" -gt 0
+                    echo "Build output:"
+                    find "$BUILD_DIR" -type f -print
                 '''
 
-                echo 'Stashing build output for later stages...'
                 stash(
                     name: 'build-output',
                     includes: 'dist/**,package.json,package-lock.json'
@@ -102,37 +122,62 @@ pipeline {
             }
         }
 
-        stage('Test') {
-            agent {
-                docker {
-                    image 'kijanikiosk-node18-agent:1.0'
-                    args '--network kijanikiosk-ci'
+        stage('Verify') {
+            parallel {
+                stage('Test') {
+                    agent {
+                        docker {
+                            image 'kijanikiosk-node18-agent:1.0'
+                            args '--network kijanikiosk-ci'
+                        }
+                    }
+
+                    steps {
+                        checkout scm
+                        unstash 'build-output'
+
+                        sh '''
+                            set -eu
+                            npm ci
+                            npm test
+                        '''
+                    }
+
+                    post {
+                        always {
+                            junit(
+                                allowEmptyResults: true,
+                                testResults: 'test-results/*.xml'
+                            )
+                            cleanWs()
+                        }
+                    }
                 }
-            }
 
-            steps {
-                checkout scm
+                stage('Security Audit') {
+                    agent {
+                        docker {
+                            image 'kijanikiosk-node18-agent:1.0'
+                            args '--network kijanikiosk-ci'
+                        }
+                    }
 
-                echo 'Restoring build output...'
-                unstash 'build-output'
+                    steps {
+                        checkout scm
+                        unstash 'build-output'
 
-                echo 'Installing dependencies for testing...'
-                sh 'npm ci'
+                        sh '''
+                            set -eu
+                            npm ci
+                            npm audit --audit-level=high
+                        '''
+                    }
 
-                echo 'Running tests...'
-                sh '''
-                    set -eu
-                    npm test
-                '''
-            }
-
-            post {
-                always {
-                    junit(
-                        allowEmptyResults: true,
-                        testResults: 'test-results/*.xml'
-                    )
-                    cleanWs()
+                    post {
+                        always {
+                            cleanWs()
+                        }
+                    }
                 }
             }
         }
@@ -182,30 +227,40 @@ pipeline {
                         passwordVariable: 'NEXUS_PASS'
                     )
                 ]) {
-                    sh '''
-                        set -eu
-                        set +x
+                    sh(
+                        label: 'Publish package to Nexus',
+                        script: '''
+                            set -eu
+                            set +x
 
-                        trap 'rm -f .npmrc' EXIT
+                            trap 'rm -f .npmrc' EXIT
 
-                        NEXUS_TOKEN=$(
-                            printf '%s' "$NEXUS_USER:$NEXUS_PASS" |
-                            base64 |
-                            tr -d '\\n'
-                        )
+                            printf '%s\\n' \
+                              "registry=$NEXUS_URL" \
+                              "//$(
+                                  printf '%s' "$NEXUS_URL" |
+                                  sed 's|^https\\?://||; s|/$||'
+                              )/:username=$NEXUS_USER" \
+                              "//$(
+                                  printf '%s' "$NEXUS_URL" |
+                                  sed 's|^https\\?://||; s|/$||'
+                              )/:_password=$(printf '%s' "$NEXUS_PASS" | base64 | tr -d '\\n')" \
+                              "//$(
+                                  printf '%s' "$NEXUS_URL" |
+                                  sed 's|^https\\?://||; s|/$||'
+                              )/:email=jenkins@localhost" \
+                              "//$(
+                                  printf '%s' "$NEXUS_URL" |
+                                  sed 's|^https\\?://||; s|/$||'
+                              )/:always-auth=true" > .npmrc
 
-                        printf '%s\\n' \
-                            "registry=$NEXUS_URL" \
-                            "always-auth=true" \
-                            "//nexus:8081/repository/npm-kijanikiosk/:_auth=$NEXUS_TOKEN" \
-                            > .npmrc
+                            npm version "$ARTIFACT_VERSION" \
+                              --no-git-tag-version \
+                              --allow-same-version
 
-                        npm version "$ARTIFACT_VERSION" \
-                            --no-git-tag-version \
-                            --allow-same-version
-
-                        npm publish --registry="$NEXUS_URL"
-                    '''
+                            npm publish --registry="$NEXUS_URL"
+                        '''
+                    )
                 }
             }
 
@@ -219,12 +274,18 @@ pipeline {
 
     post {
         success {
-            echo "Published ${APP_NAME} version ${ARTIFACT_VERSION} to Nexus"
-            echo "Artifact URL: ${NEXUS_URL}${APP_NAME}/-/${APP_NAME}-${ARTIFACT_VERSION}.tgz"
+            echo "Pipeline SUCCESS: ${env.APP_NAME}@${env.ARTIFACT_VERSION}"
+            echo "Nexus repository: ${env.NEXUS_URL}"
+            echo "Package path: ${env.APP_NAME}/-/${env.APP_NAME}-${env.ARTIFACT_VERSION}.tgz"
         }
 
         failure {
-            echo "Pipeline FAILED at build ${BUILD_NUMBER} - check logs at ${BUILD_URL}"
+            echo "Pipeline FAILED for ${env.APP_NAME}."
+            echo "Check the failed stage logs before attempting publication again."
+        }
+
+        aborted {
+            echo "Pipeline was aborted or timed out."
         }
     }
 }
