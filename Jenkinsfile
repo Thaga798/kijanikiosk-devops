@@ -1,11 +1,16 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'node:18-alpine'
+            args '--network kijanikiosk-ci'
+        }
+    }
 
     environment {
-        NODE_ENV   = 'test'
-        BUILD_DIR  = 'dist'
-        APP_NAME   = 'kijanikiosk-payments'
-        NEXUS_URL  = 'http://nexus:8081/repository/npm-kijanikiosk/'
+        NODE_ENV  = 'test'
+        BUILD_DIR = 'dist'
+        APP_NAME  = 'kijanikiosk-payments'
+        NEXUS_URL = 'http://nexus:8081/repository/npm-kijanikiosk/'
     }
 
     options {
@@ -38,9 +43,12 @@ pipeline {
             }
         }
 
-
         stage('Build') {
             steps {
+                echo 'Checking container runtime versions...'
+                sh 'node --version'
+                sh 'npm --version'
+
                 echo 'Installing dependencies...'
                 sh 'npm ci'
 
