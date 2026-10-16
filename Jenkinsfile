@@ -1,10 +1,11 @@
 pipeline {
     agent {
-        docker {
-            image 'node:18-alpine'
-            args '--network kijanikiosk-ci'
-        }
+    docker {
+        image 'node:18-alpine'
+        args '--network kijanikiosk-ci'
+        alwaysPull true
     }
+}
 
     environment {
         NODE_ENV  = 'test'
@@ -22,6 +23,8 @@ pipeline {
     stages {
         stage('Initialize Metadata') {
             steps {
+              sh 'apk add --no-cache git'
+
                 script {
                     env.PKG_VERSION = sh(
                         script: "node -p \"require('./package.json').version\"",
