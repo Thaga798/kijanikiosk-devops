@@ -1,10 +1,6 @@
+
 pipeline {
-agent {
-    docker {
-        image 'kijanikiosk-node18-agent:1.0'
-        args '--network kijanikiosk-ci'
-    }
-}
+    agent none
 
     environment {
         NODE_ENV  = 'test'
@@ -17,11 +13,21 @@ agent {
         timeout(time: 15, unit: 'MINUTES')
         buildDiscarder(logRotator(numToKeepStr: '10'))
         disableConcurrentBuilds()
+        skipDefaultCheckout()
     }
 
     stages {
         stage('Initialize Metadata') {
+            agent {
+                docker {
+                    image 'kijanikiosk-node18-agent:1.0'
+                    args '--network kijanikiosk-ci'
+                }
+            }
+
             steps {
+                checkout scm
+
                 script {
                     env.PKG_VERSION = sh(
                         script: "node -p \"require('./package.json').version\"",
@@ -41,13 +47,29 @@ agent {
                     echo "Registry: ${env.NEXUS_URL}"
                 }
             }
+
+            post {
+                always {
+                    cleanWs()
+                }
+            }
         }
 
         stage('Build') {
+            agent {
+                docker {
+                    image 'kijanikiosk-node18-agent:1.0'
+                    args '--network kijanikiosk-ci'
+                }
+            }
+
             steps {
+                checkout scm
+
                 echo 'Checking container runtime versions...'
                 sh 'node --version'
                 sh 'npm --version'
+                sh 'git --version'
 
                 echo 'Installing dependencies...'
                 sh 'npm ci'
@@ -65,11 +87,38 @@ agent {
 
                     test "$FILE_COUNT" -gt 0
                 '''
+
+                echo 'Stashing build output for later stages...'
+                stash(
+                    name: 'build-output',
+                    includes: 'dist/**,package.json,package-lock.json'
+                )
+            }
+
+            post {
+                always {
+                    cleanWs()
+                }
             }
         }
 
         stage('Test') {
+            agent {
+                docker {
+                    image 'kijanikiosk-node18-agent:1.0'
+                    args '--network kijanikiosk-ci'
+                }
+            }
+
             steps {
+                checkout scm
+
+                echo 'Restoring build output...'
+                unstash 'build-output'
+
+                echo 'Installing dependencies for testing...'
+                sh 'npm ci'
+
                 echo 'Running tests...'
                 sh '''
                     set -eu
@@ -83,22 +132,49 @@ agent {
                         allowEmptyResults: true,
                         testResults: 'test-results/*.xml'
                     )
+                    cleanWs()
                 }
             }
         }
 
         stage('Archive') {
+            agent {
+                docker {
+                    image 'kijanikiosk-node18-agent:1.0'
+                    args '--network kijanikiosk-ci'
+                }
+            }
+
             steps {
+                checkout scm
+                unstash 'build-output'
+
                 archiveArtifacts(
                     artifacts: "${BUILD_DIR}/**",
                     fingerprint: true,
                     onlyIfSuccessful: true
                 )
             }
+
+            post {
+                always {
+                    cleanWs()
+                }
+            }
         }
 
         stage('Publish') {
+            agent {
+                docker {
+                    image 'kijanikiosk-node18-agent:1.0'
+                    args '--network kijanikiosk-ci'
+                }
+            }
+
             steps {
+                checkout scm
+                unstash 'build-output'
+
                 withCredentials([
                     usernamePassword(
                         credentialsId: 'nexus-credentials',
@@ -110,31 +186,32 @@ agent {
                         set -eu
                         set +x
 
-                        # Always remove temporary npm credentials.
                         trap 'rm -f .npmrc' EXIT
 
-                        # Generate the Nexus Basic authentication token.
                         NEXUS_TOKEN=$(
                             printf '%s' "$NEXUS_USER:$NEXUS_PASS" |
                             base64 |
                             tr -d '\\n'
                         )
 
-                        # Create temporary npm configuration.
                         printf '%s\\n' \
                             "registry=$NEXUS_URL" \
                             "always-auth=true" \
                             "//nexus:8081/repository/npm-kijanikiosk/:_auth=$NEXUS_TOKEN" \
                             > .npmrc
 
-                        # Set a version derived from package.json and Git.
                         npm version "$ARTIFACT_VERSION" \
                             --no-git-tag-version \
                             --allow-same-version
 
-                        # Publish to Nexus. A failure exits non-zero.
                         npm publish --registry="$NEXUS_URL"
                     '''
+                }
+            }
+
+            post {
+                always {
+                    cleanWs()
                 }
             }
         }
@@ -148,10 +225,6 @@ agent {
 
         failure {
             echo "Pipeline FAILED at build ${BUILD_NUMBER} - check logs at ${BUILD_URL}"
-        }
-
-        always {
-            cleanWs()
         }
     }
 }
