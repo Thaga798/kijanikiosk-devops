@@ -23,19 +23,22 @@ pipeline {
     }
 
     stages {
-
         stage('Initialize Metadata') {
             steps {
                 script {
-                    def packageVersion = sh(
-                        script: "node -p \"require('./package.json').version\"",
-                        returnStdout: true
-                    ).trim()
+                    def packageJson = readFile('package.json')
+                    def versionMatch = packageJson =~ /"version"\s*:\s*"([^"]+)"/
 
-                    def gitShort = sh(
-                        script: 'git rev-parse --short HEAD',
-                        returnStdout: true
-                    ).trim()
+                    if (!versionMatch.find()) {
+                        error('Could not find package version in package.json')
+                    }
+
+                    def packageVersion = versionMatch.group(1)
+                    def gitShort = env.GIT_COMMIT?.take(7)
+
+                    if (!gitShort) {
+                        error('Jenkins did not provide GIT_COMMIT')
+                    }
 
                     env.PKG_VERSION = packageVersion
                     env.GIT_SHORT = gitShort
@@ -49,7 +52,6 @@ pipeline {
                 }
             }
         }
-
         stage('Lint') {
             steps {
                sh 'npm ci --no-audit' 
