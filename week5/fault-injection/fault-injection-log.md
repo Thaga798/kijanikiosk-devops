@@ -32,3 +32,31 @@ build did not publish a package to Nexus.
 **Final status:** `FAILURE`, as expected.
 
 **Restoration:** Remove the intentional `echo` and `exit 1` commands, restore the Lint branch to its normal `npm run lint` command, and verify that the pipeline returns to `SUCCESS`.
+
+## 3. Archive Failure
+
+**Fault injected:** Changed the artifact archive pattern to reference a directory that does not exist, intentionally causing the Archive stage to fail.
+
+**Observed behaviour:** Initialize Metadata, Build, and all three parallel Verify branches (Lint, Test, and Security Audit) completed successfully. The Archive stage encountered the intentional fault and failed because the expected artifact path was unavailable.
+
+**Downstream stages:** Publish was skipped because the Archive stage failed. The Declarative Post Actions block still executed and reported the pipeline failure.
+
+**Artifact behaviour:** The Build stage generated `dist/app.js`, but the Archive stage could not archive the expected files. Publish did not execute, so this run did not publish a new package to Nexus.
+
+**Conclusion:** The test demonstrated that Jenkins detects an artifact-archiving failure and prevents the pipeline from continuing to publication. This helps avoid publishing a package when the required artifact-handling step has failed.
+
+**Restoration:** The archive pattern was corrected, and a subsequent pipeline run completed successfully, confirming that the pipeline recovered after the injected fault was removed.
+
+## 4. Publish Failure — Invalid Nexus Credentials
+
+**Fault injected:** Changed the Nexus credential ID used by the Publish stage to an incorrect or nonexistent credential ID, intentionally preventing Jenkins from retrieving the required publishing credentials.
+
+**Expected behaviour:** Initialize Metadata, Build, Verify, and Archive should complete successfully. The Publish stage should fail when Jenkins attempts to access the unavailable credential or authenticate with Nexus. The Declarative Post Actions block should still execute and report the failure.
+
+**Expected artifact behaviour:** The artifact should be built and archived before publication is attempted. Because the Publish stage fails, the pipeline should not report a successful package publication. Depending on where the failure occurs, Nexus may reject the request before accepting any package.
+
+**Conclusion:** This test checks that the pipeline handles publishing-credential failures and reports unsuccessful publication rather than treating the entire process as successful. It also demonstrates why Jenkins credentials must be configured correctly and referenced by their exact credential IDs.
+
+**Restoration:** The original Jenkins credential ID, `nexus-credentials`, should be restored after the test. A subsequent pipeline run should complete successfully, and the console log should confirm successful publication to Nexus.
+
+**Evidence to retain:** Record the failed build number, the Publish-stage error, the final pipeline status, and the successful recovery build number.

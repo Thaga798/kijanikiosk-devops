@@ -14,3 +14,5 @@ dist/
 *.tfstate.*
 *.tfvars
 .terraform/
+node_modules/
+test-results/

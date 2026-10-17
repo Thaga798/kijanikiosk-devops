@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "build": "echo 'No compilation step needed for native Node.js app' && mkdir -p dist && echo \"build-id: ${BUILD_NUMBER}\" > dist/app.js",
-    "test": "echo \"Success: All tests passed cleanly.\" && exit 0",
+    "test": "node test/app.test.js",
     "lint": "eslint . --ignore-pattern dist/ --ignore-pattern node_modules/"
   },
   "devDependencies": {
