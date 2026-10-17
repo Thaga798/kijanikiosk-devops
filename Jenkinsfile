@@ -55,26 +55,6 @@ pipeline {
             }
         }
 
-        stage('Lint') {
-            agent {
-                docker {
-                    image 'kijanikiosk-node18-agent:1.0'
-                    args '--network kijanikiosk-ci'
-                }
-            }
-
-            steps {
-                checkout scm
-                sh 'npm ci'
-                sh 'npm run lint'
-            }
-
-            post {
-                always {
-                    cleanWs()
-                }
-            }
-        }
 
         stage('Build') {
             agent {
@@ -124,6 +104,31 @@ pipeline {
 
         stage('Verify') {
             parallel {
+
+                stage('Lint') {
+                    agent {
+                        docker {
+                            image 'kijanikiosk-node18-agent:1.0'
+                            args '--network kijanikiosk-ci'
+                        }
+                    }
+
+                    steps {
+                        checkout scm
+                        sh '''
+                            set -eu
+                            npm ci
+                            npm run lint
+                        '''
+                    }
+
+                    post {
+                        always {
+                            cleanWs()
+                        }
+                    }
+                }
+
                 stage('Test') {
                     agent {
                         docker {
