@@ -60,3 +60,15 @@ build did not publish a package to Nexus.
 **Restoration:** The original Jenkins credential ID, `nexus-credentials`, should be restored after the test. A subsequent pipeline run should complete successfully, and the console log should confirm successful publication to Nexus.
 
 **Evidence to retain:** Record the failed build number, the Publish-stage error, the final pipeline status, and the successful recovery build number.
+
+
+	## Required Thursday Fault-Injection Summary
+
+| Fault | Observed (Y/N) | Explanation |
+|---|---|---|
+| Lint — introduce a syntax error in source code | Y | The Lint stage failed, and dependent downstream stages were skipped, preventing invalid code from proceeding through the pipeline. |
+| Build — use an invalid `npm ci` flag | Y | The Build stage failed, causing Verify, Archive, and Publish to be skipped. |
+| Test — introduce a deliberately failing assertion | Y | The Test branch failed while the independent Security Audit branch completed, demonstrating parallel execution and correct failure handling. Archive and Publish were skipped. |
+| Publish — use an incorrect Jenkins credential ID | Y | Earlier stages and Archive completed, but Publish failed because the credentials could not be resolved, preventing successful publication to Nexus. |
+
+
