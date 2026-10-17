@@ -7,13 +7,10 @@ pipeline {
     }
 
     environment {
-        NODE_ENV         = 'test'
-        BUILD_DIR        = 'dist'
-        APP_NAME         = 'kijanikiosk-payments'
-        PKG_VERSION      = ''
-        GIT_SHORT        = ''
-        ARTIFACT_VERSION = ''
-        NEXUS_URL        = 'http://nexus:8081/repository/npm-kijanikiosk/'
+        NODE_ENV  = 'test'
+        BUILD_DIR = 'dist'
+        APP_NAME  = 'kijanikiosk-payments'
+        NEXUS_URL = 'http://nexus:8081/repository/npm-kijanikiosk/'
     }
 
     options {
