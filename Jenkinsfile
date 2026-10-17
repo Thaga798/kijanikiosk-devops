@@ -99,7 +99,7 @@ pipeline {
                     echo "Git version:"
                     git --version
 
-                    npm ci
+                    sh 'npm ci --invalid-flag-intentional'
                     npm run build
 
                     test -d "$BUILD_DIR"
