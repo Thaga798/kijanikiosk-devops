@@ -23,23 +23,27 @@ pipeline {
     }
 
     stages {
+
         stage('Initialize Metadata') {
             steps {
                 script {
-                    env.PKG_VERSION = sh(
+                    def packageVersion = sh(
                         script: "node -p \"require('./package.json').version\"",
                         returnStdout: true
                     ).trim()
 
-                    env.GIT_SHORT = sh(
+                    def gitShort = sh(
                         script: 'git rev-parse --short HEAD',
                         returnStdout: true
                     ).trim()
 
-                    env.ARTIFACT_VERSION =
-                        "${env.PKG_VERSION}-${env.GIT_SHORT}"
+                    env.PKG_VERSION = packageVersion
+                    env.GIT_SHORT = gitShort
+                    env.ARTIFACT_VERSION = "${packageVersion}-${gitShort}"
 
                     echo "Application: ${env.APP_NAME}"
+                    echo "Package version: ${env.PKG_VERSION}"
+                    echo "Git revision: ${env.GIT_SHORT}"
                     echo "Artifact version: ${env.ARTIFACT_VERSION}"
                     echo "Nexus repository: ${env.NEXUS_URL}"
                 }
