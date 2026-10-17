@@ -118,9 +118,7 @@ pipeline {
                         sh '''
                             set -eu
                             npm ci
-npm run lint
-echo "Intentional fault: forcing Lint branch to fail"
-exit 1
+                            npm run lint
                         '''
                     }
 
