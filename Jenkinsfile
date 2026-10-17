@@ -48,7 +48,8 @@ pipeline {
 
         stage('Lint') {
             steps {
-                sh 'npm run lint'
+               sh 'npm ci --no-audit' 
+               sh 'npm run lint'
             }
         }
 
