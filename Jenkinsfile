@@ -200,7 +200,7 @@ pipeline {
                 unstash 'build-output'
 
                 archiveArtifacts(
-                    artifacts: "${BUILD_DIR}/**",
+                    artifacts: "${BUILD_DIRdsd}/hgj**",
                     fingerprint: true,
                     onlyIfSuccessful: true
                 )
