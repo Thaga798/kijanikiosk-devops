@@ -2,3 +2,17 @@
 *.tfstate
 *.tfstate.backup
 .terraform/
+# Generated build output
+dist/
+
+# Generated npm package archives
+*.tgz
+*.tar.gz
+
+# Terraform state and local configuration
+*.tfstate
+*.tfstate.*
+*.tfvars
+.terraform/
+node_modules/
+test-results/

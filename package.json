@@ -1,0 +1,17 @@
+{
+  "name": "kijanikiosk-payments",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "mkdir -p dist && cp src/app.js dist/app.js",
+    "test": "node test/app.test.js",
+    "lint": "eslint . --ignore-pattern dist/ --ignore-pattern node_modules/"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.1"
+  },
+  "files": [
+    "dist/",
+    "src/",
+    "package.json"
+  ]
+}
