@@ -2,9 +2,7 @@
 
 ## Overview
 
-Week 5 focused on improving the KijaniKiosk Payments project by building and testing a CI/CD pipeline. The work covered Git workflows, Docker-based build environments, automated testing, security checks, artifact publishing, and pipeline failure handling.
-
-The work is organized by day. Some tasks were completed on separate Git branches, so checking only the `master` or `develop` branch may not show every deliverable.
+Week 5 focused on improving the KijaniKiosk Payments project by building and testing a CI/CD pipeline. The work covered Git workflows, Docker-based build environments, automated testing, security checks, artifact publishing, and pipeline failure handling. The work is organized by day. Some tasks were completed on separate Git branches.
 
 ## Tuesday — Docker Build Agent and CI Setup
 
