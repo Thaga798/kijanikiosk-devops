@@ -51,17 +51,15 @@ build did not publish a package to Nexus.
 
 **Fault injected:** Changed the Nexus credential ID used by the Publish stage to an incorrect or nonexistent credential ID, intentionally preventing Jenkins from retrieving the required publishing credentials.
 
-**Expected behaviour:** Initialize Metadata, Build, Verify, and Archive should complete successfully. The Publish stage should fail when Jenkins attempts to access the unavailable credential or authenticate with Nexus. The Declarative Post Actions block should still execute and report the failure.
+**Observed behaviour:** Initialize Metadata, Build, Verify, and Archive completed successfully. The Publish stage failed when Jenkins attempted to  authenticate with Nexus. The Declarative Post Actions blocks still executed and reported the failure.
 
-**Expected artifact behaviour:** The artifact should be built and archived before publication is attempted. Because the Publish stage fails, the pipeline should not report a successful package publication. Depending on where the failure occurs, Nexus may reject the request before accepting any package.
+**Artifact behaviour:** The artifact was built and archived before publication was attempted. Because the Publish stage fails, the pipeline did not report a successful package publication.
 
 **Conclusion:** This test checks that the pipeline handles publishing-credential failures and reports unsuccessful publication rather than treating the entire process as successful. It also demonstrates why Jenkins credentials must be configured correctly and referenced by their exact credential IDs.
 
-**Restoration:** The original Jenkins credential ID, `nexus-credentials`, should be restored after the test. A subsequent pipeline run should complete successfully, and the console log should confirm successful publication to Nexus.
+**Restoration:** The original Jenkins credential ID, `nexus-credentials`, was restored after the test. The subsequent pipeline run completed successfully, and the console log confirmed successful publication to Nexus.
 
-**Evidence to retain:** Record the failed build number, the Publish-stage error, the final pipeline status, and the successful recovery build number.
-
-
+	
 	## Required Thursday Fault-Injection Summary
 
 | Fault | Observed (Y/N) | Explanation |
