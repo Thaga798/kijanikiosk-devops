@@ -1,0 +1,320 @@
+KijaniKiosk Friday CI Pipeline - Green Run Evidence
+
+Branch: feature/week5-ci-pipeline
+Git commit: b66d5d6437ac6dd90a42ee3e9e674cb38741c1b7
+Result: SUCCESS
+Duration: 6 minutes 36 seconds
+
+Stage results:
+- Checkout SCM: completed
+- Initialize Metadata: completed
+- Lint: passed
+- Build: passed; dist/app.js verified
+- Test: passed; 1 test passed and 0 failed
+- Security Audit: passed; 0 vulnerabilities found
+- Archive: artifacts archived and fingerprints recorded
+- Publish: completed successfully
+- Post Actions: JUnit results recorded and workspace cleaned
+
+Published package:
+kijanikiosk-payments@1.0.0-b66d5d6
+
+Nexus repository:
+http://localhost:8081/#browse/browse:npm-kijanikiosk
+
+The Jenkins run completed successfully in less than 10 minutes.
+
+
+
+
+Started by user Edwin Mathaga
+
+Obtained Jenkinsfile from git https://github.com/Thaga798/kijanikiosk-devops.git
+[Pipeline] Start of Pipeline
+[Pipeline] node
+Running on Jenkins
+ in /var/jenkins_home/workspace/kijanikiosk-payments
+[Pipeline] {
+[Pipeline] stage
+[Pipeline] { (Declarative: Checkout SCM)
+[Pipeline] checkout
+Selected Git installation does not exist. Using Default
+The recommended git tool is: NONE
+using credential 28a543fc-d6ba-49f7-9acd-89c2f13b7c56
+Cloning the remote Git repository
+Cloning repository https://github.com/Thaga798/kijanikiosk-devops.git
+ > git init /var/jenkins_home/workspace/kijanikiosk-payments # timeout=10
+Fetching upstream changes from https://github.com/Thaga798/kijanikiosk-devops.git
+ > git --version # timeout=10
+ > git --version # 'git version 2.47.3'
+using GIT_ASKPASS to set credentials 
+ > git fetch --tags --force --progress -- https://github.com/Thaga798/kijanikiosk-devops.git +refs/heads/*:refs/remotes/origin/* # timeout=10
+
+ > git config remote.origin.url https://github.com/Thaga798/kijanikiosk-devops.git # timeout=10
+ > git config --add remote.origin.fetch +refs/heads/*:refs/remotes/origin/* # timeout=10
+Avoid second fetch
+ > git rev-parse refs/remotes/origin/feature/week5-ci-pipeline^{commit} # timeout=10
+Checking out Revision b66d5d6437ac6dd90a42ee3e9e674cb38741c1b7 (refs/remotes/origin/feature/week5-ci-pipeline)
+ > git config core.sparsecheckout # timeout=10
+ > git checkout -f b66d5d6437ac6dd90a42ee3e9e674cb38741c1b7 # timeout=10
+Commit message: "Complete Week 5 Friday CI pipeline"
+First time build. Skipping changelog.
+[Pipeline] }
+
+[Pipeline] // stage
+[Pipeline] withEnv
+[Pipeline] {
+
+[Pipeline] isUnix
+
+[Pipeline] withEnv
+[Pipeline] {
+[Pipeline] sh
+
++ docker inspect -f . kijanikiosk-node18-agent:1.0
+
+.
+
+[Pipeline] }
+
+[Pipeline] // withEnv
+
+[Pipeline] withDockerContainer
+
+Jenkins seems to be running inside container b21bea4dae99e36252f6b1e913b3f0da365463b5fdbc3ba04b40a406cdc7ab40
+
+$ docker run -t -d -u 1000:1000 -v /tmp:/tmp --network kijanikiosk-ci -w /var/jenkins_home/workspace/kijanikiosk-payments --volumes-from b21bea4dae99e36252f6b1e913b3f0da365463b5fdbc3ba04b40a406cdc7ab40 -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** -e ******** kijanikiosk-node18-agent:1.0 cat
+
+$ docker top c62be03b1dcf69b7b22c8847853a1f4edec958a1da96d6f37e99b0b9975b4da2 -eo pid,comm
+
+[Pipeline] {
+
+[Pipeline] withEnv
+[Pipeline] {
+[Pipeline] timeout
+Timeout set to expire in 9 min 0 sec
+[Pipeline] {
+
+[Pipeline] stage
+[Pipeline] { (Initialize Metadata)
+[Pipeline] script
+[Pipeline] {
+[Pipeline] readFile
+
+[Pipeline] echo
+Application: kijanikiosk-payments
+[Pipeline] echo
+Package version: 1.0.0
+
+[Pipeline] echo
+Git revision: b66d5d6
+[Pipeline] echo
+Artifact version: 1.0.0-b66d5d6
+[Pipeline] echo
+Nexus repository: http://nexus:8081/repository/npm-kijanikiosk/
+[Pipeline] }
+
+[Pipeline] // script
+[Pipeline] }
+
+[Pipeline] // stage
+
+[Pipeline] stage
+[Pipeline] { (Lint)
+
+[Pipeline] sh
+
++ npm ci --no-audit
+
+npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+npm warn deprecated glob@7.2.3: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+
+npm warn deprecated @humanwhocodes/config-array@0.13.0: Use @eslint/config-array instead
+npm warn deprecated @humanwhocodes/object-schema@2.0.3: Use @eslint/object-schema instead
+npm warn deprecated eslint@8.57.1: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+
+npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+
+added 99 packages in 1m
+
+25 packages are looking for funding
+  run `npm fund` for details
+
+[Pipeline] sh
+
++ npm run lint
+
+> kijanikiosk-payments@1.0.0 lint
+> eslint . --ignore-pattern dist/ --ignore-pattern node_modules/
+
+
+[Pipeline] }
+[Pipeline] // stage
+
+[Pipeline] stage
+[Pipeline] { (Build)
+
+[Pipeline] sh
++ set -eu
++ npm ci --no-audit
+
+npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+npm warn deprecated @humanwhocodes/config-array@0.13.0: Use @eslint/config-array instead
+npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+npm warn deprecated glob@7.2.3: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+npm warn deprecated @humanwhocodes/object-schema@2.0.3: Use @eslint/object-schema instead
+npm warn deprecated eslint@8.57.1: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+
+added 99 packages in 2s
+
+25 packages are looking for funding
+  run `npm fund` for details
++ npm run build
+
+> kijanikiosk-payments@1.0.0 build
+> mkdir -p dist && cp src/app.js dist/app.js
+
++ '[' '!' -d dist ]
++ find dist -type f -print -quit
++ '[' -z dist/app.js ]
++ echo 'Build output verified:'
+Build output verified:
++ find dist -type f
+dist/app.js
+
+[Pipeline] stash
+
+Stashed 5 file(s)
+[Pipeline] }
+[Pipeline] // stage
+
+[Pipeline] stage
+[Pipeline] { (Verify)
+[Pipeline] parallel
+[Pipeline] { (Branch: Test)
+[Pipeline] { (Branch: Security Audit)
+
+[Pipeline] stage
+[Pipeline] { (Test)
+[Pipeline] stage
+[Pipeline] { (Security Audit)
+
+[Pipeline] unstash
+[Pipeline] sh
+
++ npm audit '--audit-level=high'
+[Pipeline] sh
++ npm test
+
+
+> kijanikiosk-payments@1.0.0 test
+> node test/app.test.js
+
+PASS: application reports the correct name and running status
+Tests: 1, Passed: 1, Failed: 0
+[Pipeline] }
+[Pipeline] // stage
+
+[Pipeline] }
+
+found 0 vulnerabilities
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] }
+
+[Pipeline] // parallel
+[Pipeline] }
+
+[Pipeline] // stage
+
+[Pipeline] stage
+[Pipeline] { (Archive)
+[Pipeline] archiveArtifacts
+Archiving artifacts
+
+Recording fingerprints
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+
+[Pipeline] { (Publish)
+
+[Pipeline] withCredentials
+
+Masking supported pattern matches of $NEXUS_PASS
+[Pipeline] {
+
+[Pipeline] sh
++ set -eu
++ set +x
+Preparing kijanikiosk-payments@1.0.0-b66d5d6
+
+v1.0.0-b66d5d6
+Publishing kijanikiosk-payments@1.0.0-b66d5d6 to Nexus
+
+npm notice
+npm notice package: kijanikiosk-payments@1.0.0-b66d5d6
+npm notice Tarball Contents
+npm notice 175B dist/app.js
+npm notice 374B package.json
+npm notice 175B src/app.js
+npm notice Tarball Details
+npm notice name: kijanikiosk-payments
+npm notice version: 1.0.0-b66d5d6
+npm notice filename: kijanikiosk-payments-1.0.0-b66d5d6.tgz
+npm notice package size: 444 B
+npm notice unpacked size: 724 B
+npm notice shasum: c65e6d443765df9ffea2e6309733b6be95bb74ff
+npm notice integrity: sha512-IzFWImesIOEK8[...]4SV5FlrpeIwhQ==
+npm notice total files: 3
+npm notice
+npm notice Publishing to http://nexus:8081/repository/npm-kijanikiosk/ with tag latest and default access
+
++ kijanikiosk-payments@1.0.0-b66d5d6
+Nexus publish command completed successfully.
+
+[Pipeline] }
+
+[Pipeline] // withCredentials
+[Pipeline] }
+
+[Pipeline] // stage
+
+[Pipeline] stage
+[Pipeline] { (Declarative: Post Actions)
+[Pipeline] junit
+Recording test results
+
+[Checks API] No suitable checks publisher found.
+
+[Pipeline] cleanWs
+[WS-CLEANUP] Deleting project workspace...
+[WS-CLEANUP] Deferred wipeout is used...
+
+[WS-CLEANUP] done
+[Pipeline] echo
+
+SUCCESS: kijanikiosk-payments@1.0.0-b66d5d6 published to http://nexus:8081/repository/npm-kijanikiosk/
+
+[Pipeline] }
+[Pipeline] // stage
+
+[Pipeline] }
+[Pipeline] // timeout
+[Pipeline] }
+[Pipeline] // withEnv
+
+[Pipeline] }
+$ docker stop --time=1 c62be03b1dcf69b7b22c8847853a1f4edec958a1da96d6f37e99b0b9975b4da2
+
+$ docker rm -f --volumes c62be03b1dcf69b7b22c8847853a1f4edec958a1da96d6f37e99b0b9975b4da2
+
+[Pipeline] // withDockerContainer
+[Pipeline] }
+[Pipeline] // withEnv
+[Pipeline] }
+
+[Pipeline] // node
+[Pipeline] End of Pipeline
+
+Finished: SUCCESS
