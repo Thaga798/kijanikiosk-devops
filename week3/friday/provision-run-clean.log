@@ -1,0 +1,56 @@
+[INFO]  2026-09-28 23:30:20 - === Phase 1: Package Provisioning & Pinning ===
+W: Failed to fetch https://nodesource.com{NODE_MAJOR_VERSION}.x/dists/nodistro/InRelease  Could not resolve 'nodesource.com{NODE_MAJOR_VERSION}.x'
+W: Some index files failed to download. They have been ignored, or old ones used instead.
+W: Failed to fetch https://nodesource.com{NODE_MAJOR_VERSION}.x/dists/nodistro/InRelease  Could not resolve 'nodesource.com{NODE_MAJOR_VERSION}.x'
+W: Some index files failed to download. They have been ignored, or old ones used instead.
+nginx was already set on hold.
+nodejs was already set on hold.
+[INFO]  2026-09-28 23:30:44 - === Phase 2: User Persona and Security Access ===
+[INFO]  2026-09-28 23:30:45 - === Phase 3: Directory Structure and Permissions ===
+[INFO]  2026-09-28 23:30:45 - === Phase 4: Programmatic Systemd Configuration Deployment ===
+[INFO]  2026-09-28 23:30:47 - === Phase 5: Firewall Intent Re-Configuration ===
+[INFO]  2026-09-28 23:30:51 - === Phase 7: Journal Persistence and Log Rotation ===
+warning: logrotate in debug mode does nothing except printing debug messages!  Consider using verbose mode (-v) instead if this is not what you want.
+
+reading config file /etc/logrotate.d/kijanikiosk
+Reading state from file: /var/lib/logrotate/status
+Allocating hash table for state file, size 64 entries
+Creating new state
+Creating new state
+Creating new state
+Creating new state
+Creating new state
+Creating new state
+Creating new state
+Creating new state
+Creating new state
+Creating new state
+Creating new state
+Creating new state
+Creating new state
+Creating new state
+Creating new state
+Creating new state
+Creating new state
+Creating new state
+Creating new state
+Creating new state
+Creating new state
+Creating new state
+Creating new state
+Creating new state
+Creating new state
+Creating new state
+Creating new state
+Creating new state
+Creating new state
+Creating new state
+Creating new state
+Creating new state
+Creating new state
+
+Handling 1 logs
+
+rotating pattern: /opt/kijanikiosk/shared/logs/*.log after 1 days empty log files are not rotated, (7 rotations), old logs are removed
+considering log /opt/kijanikiosk/shared/logs/*.log
+error: skipping "/opt/kijanikiosk/shared/logs/*.log" because parent directory has insecure permissions (It's world writable or writable by group which is not "root") Set "su" directive in config file to tell logrotate which user/group should be used for rotation.
