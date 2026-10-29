@@ -1,0 +1,21 @@
+[INFO]  2026-09-28 07:55:38 - === Phase 1: Package Provisioning ===
+W: Failed to fetch https://nodesource.com{NODE_MAJOR_VERSION}.x/dists/nodistro/InRelease  Could not resolve 'nodesource.com{NODE_MAJOR_VERSION}.x'
+W: Some index files failed to download. They have been ignored, or old ones used instead.
+W: Failed to fetch https://nodesource.com{NODE_MAJOR_VERSION}.x/dists/nodistro/InRelease  Could not resolve 'nodesource.com{NODE_MAJOR_VERSION}.x'
+W: Some index files failed to download. They have been ignored, or old ones used instead.
+nginx set on hold.
+nodejs set on hold.
+[INFO]  2026-09-28 07:56:02 - Software holds successfully applied for Nginx and Node.js.
+[INFO]  2026-09-28 07:56:02 - === Phase 2: User Persona and Security Access ===
+[INFO]  2026-09-28 07:56:02 - Group already exists: kijanikiosk
+[INFO]  2026-09-28 07:56:02 - Already exists: kk-api
+[INFO]  2026-09-28 07:56:02 - Already exists: kk-payments
+[INFO]  2026-09-28 07:56:02 - Already exists: kk-logs
+[INFO]  2026-09-28 07:56:03 - Associated engineer amina with shared service access group.
+[INFO]  2026-09-28 07:56:03 - === Phase 3: Directory Structure and Permissions ===
+[INFO]  2026-09-28 07:56:03 - === Phase 4: Writing systemd Unit Files Programmatically ===
+[INFO]  2026-09-28 07:56:04 - Engine component validated and configured for system boot sequence.
+[INFO]  2026-09-28 07:56:04 - === Phase 5: Firewall Configuration ===
+[INFO]  2026-09-28 07:56:06 - Firewall state active. Restricted matrix configurations successfully mounted.
+[INFO]  2026-09-28 07:56:06 - === Phase 6: Verification ===
+[INFO]  2026-09-28 07:56:07 - Verification checks clear. All KijaniKiosk core provisioning guardrails pass cleanly.

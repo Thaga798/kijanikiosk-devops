@@ -1,0 +1,23 @@
+procs -----------memory---------- ---swap-- -----io---- -system-- -------cpu-------
+ r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs us sy id wa st gu
+ 7  0 264064 376332 139964 3583876    3   30   603   483 2703    6 16  4 76  4  0  0
+ 2  0 264064 376332 139984 3583888    0    0     0   136 2734 2213  9  3 86  1  0  0
+ 1  0 264064 376584 140000 3582756    0    0     0    58 3773 2970 23  5 70  1  0  0
+ 1  0 264064 389752 140000 3577656    0    0     0     0 4321 3703 33  6 60  0  0  0
+ 4  0 264064 436736 140028 3563092    0    0     0   216 4775 3915 40  8 51  2  0  0
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sda2       143G   31G  105G  23% /
+8.0K	/opt/kijanikiosk/shared/logs/
+Status: active
+
+     To                         Action      From
+     --                         ------      ----
+[ 1] Anywhere on lo             ALLOW IN    Anywhere                  
+[ 2] Anywhere                   ALLOW OUT   Anywhere on lo             (out)
+[ 3] 22/tcp                     ALLOW IN    Anywhere                   # SSH inbound clearance
+[ 4] 80/tcp                     ALLOW IN    Anywhere                   # HTTP network listener
+[ 5] Anywhere (v6) on lo        ALLOW IN    Anywhere (v6)             
+[ 6] Anywhere (v6)              ALLOW OUT   Anywhere (v6) on lo        (out)
+[ 7] 22/tcp (v6)                ALLOW IN    Anywhere (v6)              # SSH inbound clearance
+[ 8] 80/tcp (v6)                ALLOW IN    Anywhere (v6)              # HTTP network listener
+
