@@ -1,0 +1,178 @@
+Started by user Edwin Mathaga
+
+Obtained Jenkinsfile from git https://github.com/Thaga798/kijanikiosk-devops.git
+[Pipeline] Start of Pipeline
+[Pipeline] node
+Running on Jenkins
+ in /var/jenkins_home/workspace/kijanikiosk-payments
+[Pipeline] {
+[Pipeline] stage
+[Pipeline] { (Declarative: Checkout SCM)
+[Pipeline] checkout
+Selected Git installation does not exist. Using Default
+The recommended git tool is: NONE
+using credential 28a543fc-d6ba-49f7-9acd-89c2f13b7c56
+Cloning the remote Git repository
+Cloning repository https://github.com/Thaga798/kijanikiosk-devops.git
+ > git init /var/jenkins_home/workspace/kijanikiosk-payments # timeout=10
+Fetching upstream changes from https://github.com/Thaga798/kijanikiosk-devops.git
+ > git --version # timeout=10
+ > git --version # 'git version 2.47.3'
+using GIT_ASKPASS to set credentials 
+ > git fetch --tags --force --progress -- https://github.com/Thaga798/kijanikiosk-devops.git +refs/heads/*:refs/remotes/origin/* # timeout=10
+ > git config remote.origin.url https://github.com/Thaga798/kijanikiosk-devops.git # timeout=10
+ > git config --add remote.origin.fetch +refs/heads/*:refs/remotes/origin/* # timeout=10
+Avoid second fetch
+ > git rev-parse refs/remotes/origin/master^{commit} # timeout=10
+Checking out Revision 403f9af7122809a9a28d599ec9b5b7235199773a (refs/remotes/origin/master)
+ > git config core.sparsecheckout # timeout=10
+ > git checkout -f 403f9af7122809a9a28d599ec9b5b7235199773a # timeout=10
+Commit message: "ci: add Publish stage with Nexus integration and versioned artifact"
+ > git rev-list --no-walk 8aa3c719259b7047e91744cdfc173a825fb35eb6 # timeout=10
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] withEnv
+[Pipeline] {
+[Pipeline] withEnv
+[Pipeline] {
+[Pipeline] timeout
+Timeout set to expire in 15 min
+[Pipeline] {
+[Pipeline] stage
+[Pipeline] { (Initialize Metadata)
+[Pipeline] script
+[Pipeline] {
+[Pipeline] sh
++ node -p require('./package.json').version
+[Pipeline] sh
++ git rev-parse --short HEAD
+[Pipeline] echo
+Package: kijanikiosk-payments
+[Pipeline] echo
+Artifact version: 1.0.0-403f9af
+[Pipeline] echo
+Registry: http://nexus:8081/repository/npm-kijanikiosk/
+[Pipeline] }
+[Pipeline] // script
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Build)
+[Pipeline] echo
+Installing dependencies...
+[Pipeline] sh
++ npm ci
+
+up to date, audited 1 package in 88ms
+
+found 0 vulnerabilities
+[Pipeline] echo
+Building application...
+[Pipeline] sh
++ npm run build
+
+> kijanikiosk-payments@1.0.0 build
+> echo 'No compilation step needed for native Node.js app' && mkdir -p dist && echo "build-id: ${BUILD_NUMBER}" > dist/app.js
+
+No compilation step needed for native Node.js app
+[Pipeline] echo
+Verifying build output...
+[Pipeline] sh
++ set -eu
++ test -d dist
++ find dist -type f
++ wc -l
++ FILE_COUNT=1
++ echo Build output files: 1
+Build output files: 1
++ test 1 -gt 0
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Test)
+[Pipeline] echo
+Running tests...
+[Pipeline] sh
++ set -eu
++ npm test
+
+> kijanikiosk-payments@1.0.0 test
+> echo "Success: All tests passed cleanly." && exit 0
+
+Success: All tests passed cleanly.
+Post stage
+[Pipeline] junit
+Recording test results
+No test report files were found. Configuration error?
+None of the test reports contained any result
+[Checks API] No suitable checks publisher found.
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Archive)
+[Pipeline] archiveArtifacts
+Archiving artifacts
+Recording fingerprints
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Publish)
+[Pipeline] withCredentials
+Masking supported pattern matches of $NEXUS_PASS
+[Pipeline] {
+[Pipeline] sh
++ set -eu
++ set +x
+v1.0.0-403f9af
+npm notice 
+npm notice 📦  kijanikiosk-payments@1.0.0-403f9af
+npm notice === Tarball Contents === 
+npm notice 383B  .github/workflows/ci.yml
+npm notice 4.4kB Jenkinsfile             
+npm notice 1.3kB README-Week 4.md        
+npm notice 1.8kB README-Week-2.md        
+npm notice 7.6kB README-WEEK-3.md        
+npm notice 88B   RUNBOOK.md              
+npm notice 3.3kB cloud-architecture.md   
+npm notice 13B   dist/app.js             
+npm notice 0B    notes.md                
+npm notice 154B  notes/tuesday-git.md    
+npm notice 297B  package.json            
+npm notice === Tarball Details === 
+npm notice name:          kijanikiosk-payments                    
+npm notice version:       1.0.0-403f9af                           
+npm notice filename:      kijanikiosk-payments-1.0.0-403f9af.tgz  
+npm notice package size:  7.7 kB                                  
+npm notice unpacked size: 19.3 kB                                 
+npm notice shasum:        e4b374a48875e06580ee71add618cf4c5badae9f
+npm notice integrity:     sha512-YZB001DPuTISk[...]AHp6Cxb7iaR1Q==
+npm notice total files:   11                                      
+npm notice 
+npm notice Publishing to http://nexus:8081/repository/npm-kijanikiosk/ with tag latest and default access
++ kijanikiosk-payments@1.0.0-403f9af
+[Pipeline] }
+[Pipeline] // withCredentials
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Declarative: Post Actions)
+[Pipeline] cleanWs
+[WS-CLEANUP] Deleting project workspace...
+[WS-CLEANUP] Deferred wipeout is used...
+[WS-CLEANUP] done
+[Pipeline] echo
+Published kijanikiosk-payments version 1.0.0-403f9af to Nexus
+[Pipeline] echo
+Artifact URL: http://nexus:8081/repository/npm-kijanikiosk/kijanikiosk-payments/-/kijanikiosk-payments-1.0.0-403f9af.tgz
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] }
+[Pipeline] // timeout
+[Pipeline] }
+[Pipeline] // withEnv
+[Pipeline] }
+[Pipeline] // withEnv
+[Pipeline] }
+[Pipeline] // node
+[Pipeline] End of Pipeline
+Finished: SUCCESS
