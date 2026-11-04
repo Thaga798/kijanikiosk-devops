@@ -1,0 +1,31 @@
+# Stage 1: Prepare the application
+FROM node:18-alpine AS build
+
+WORKDIR /build
+
+COPY package.json ./
+COPY server.js ./server.js
+
+# Stage 2: Minimal production runtime
+FROM node:18-alpine AS production
+
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV APP_VERSION=1.0.0
+
+WORKDIR /app
+
+RUN addgroup -S -g 10001 kijani \
+    && adduser -S -u 10001 -G kijani kijani
+
+COPY --from=build --chown=kijani:kijani /build/server.js ./server.js
+COPY --from=build --chown=kijani:kijani /build/package.json ./package.json
+
+USER kijani
+
+EXPOSE 3000
+
+HEALTHCHECK --interval=10s --timeout=3s --start-period=30s --retries=3 \
+    CMD wget -q --spider http://127.0.0.1:3000/health || exit 1
+
+CMD ["node", "server.js"]
