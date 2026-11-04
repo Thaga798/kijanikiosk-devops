@@ -1,0 +1,11 @@
+[2026-11-04 07:15:15] Phase 1: Fetch artifact kk-api-v1.4.0.tar.gz
+[2026-11-04 07:15:15] Phase 1: Artifact already downloaded; skipping fetch
+[2026-11-04 07:15:15] Phase 2: Validate artifact
+[2026-11-04 07:15:15] Phase 2: Artifact validation passed
+[2026-11-04 07:15:15] Phase 3: Deploy to green
+[2026-11-04 07:15:15] Phase 3: Version already deployed; skipping extraction
+[2026-11-04 07:15:15] Phase 4: Restart kk-api-green.service
+[2026-11-04 07:15:15] Phase 4: Service restart succeeded
+[2026-11-04 07:15:15] Phase 5: Verify service on port 3001
+[2026-11-04 07:15:18] Phase 5: Verification passed: {"status":"ok","version":"v1.4.0","port":3001}
+[2026-11-04 07:15:18] Deployment successful: v1.4.0 on green

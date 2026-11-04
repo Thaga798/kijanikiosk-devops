@@ -1,0 +1,3 @@
+[2026-11-04 07:15:51] Phase 1: Fetch artifact kk-api-v9.9.9.tar.gz
+curl: (22) The requested URL returned error: 404
+[2026-11-04 07:15:51] Phase 1 FAILED: Could not download kk-api-v9.9.9.tar.gz
