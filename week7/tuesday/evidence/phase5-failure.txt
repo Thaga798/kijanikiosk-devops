@@ -1,0 +1,22 @@
+[2026-11-04 07:19:31] Phase 1: Fetch artifact kk-api-v1.4.0.tar.gz
+[2026-11-04 07:19:31] Phase 1: Artifact already downloaded; skipping fetch
+[2026-11-04 07:19:31] Phase 2: Validate artifact
+[2026-11-04 07:19:31] Phase 2: Artifact validation passed
+[2026-11-04 07:19:31] Phase 3: Deploy to green
+[2026-11-04 07:19:31] Phase 3: Version already deployed; skipping extraction
+[2026-11-04 07:19:31] Phase 4: Restart kk-api-green.service
+[2026-11-04 07:19:31] Phase 4: Service restart succeeded
+[2026-11-04 07:19:31] Phase 5: Verify service on port 3001
+Nov 04 07:09:59 kijanikiosk-api systemd[1]: Started KijaniKiosk API Green Environment.
+Nov 04 07:09:59 kijanikiosk-api node[8263]: KijaniKiosk API v1.4.0 listening on port 3001
+Nov 04 07:15:15 kijanikiosk-api systemd[1]: Stopping KijaniKiosk API Green Environment...
+Nov 04 07:15:15 kijanikiosk-api systemd[1]: kk-api-green.service: Deactivated successfully.
+Nov 04 07:15:15 kijanikiosk-api systemd[1]: Stopped KijaniKiosk API Green Environment.
+Nov 04 07:15:15 kijanikiosk-api systemd[1]: Started KijaniKiosk API Green Environment.
+Nov 04 07:15:16 kijanikiosk-api node[8354]: KijaniKiosk API v1.4.0 listening on port 3001
+Nov 04 07:19:31 kijanikiosk-api systemd[1]: Stopping KijaniKiosk API Green Environment...
+Nov 04 07:19:31 kijanikiosk-api systemd[1]: kk-api-green.service: Deactivated successfully.
+Nov 04 07:19:31 kijanikiosk-api systemd[1]: Stopped KijaniKiosk API Green Environment.
+Nov 04 07:19:31 kijanikiosk-api systemd[1]: Started KijaniKiosk API Green Environment.
+Nov 04 07:19:31 kijanikiosk-api node[8465]: KijaniKiosk API v1.4.0 listening on port 3999
+[2026-11-04 07:19:54] Phase 5 FAILED: Health check failed for v1.4.0 on port 3001
