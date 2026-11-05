@@ -1,0 +1,21 @@
+=== Deployment Pods ===
+NAME                           READY   STATUS    RESTARTS   AGE   IP           NODE       NOMINATED NODE   READINESS GATES
+kk-payments-557647f854-n5nwf   1/1     Running   0          21m   10.244.0.5   minikube   <none>           <none>
+kk-payments-557647f854-p4lq6   1/1     Running   0          21m   10.244.0.4   minikube   <none>           <none>
+
+=== Service ===
+NAME                  TYPE       CLUSTER-IP    EXTERNAL-IP   PORT(S)          AGE
+kk-payments-service   NodePort   10.97.46.50   <none>        3001:30001/TCP   6m24s
+
+=== Service Endpoints ===
+NAME                  ENDPOINTS                         AGE
+kk-payments-service   10.244.0.4:3001,10.244.0.5:3001   6m22s
+
+=== Minikube Node IP ===
+192.168.49.2
+
+=== External NodePort Health Check ===
+{"status":"ok","service":"kk-payments","environment":"production"}
+
+=== In-Cluster DNS Health Check ===
+{"status":"ok","service":"kk-payments","environment":"production"}

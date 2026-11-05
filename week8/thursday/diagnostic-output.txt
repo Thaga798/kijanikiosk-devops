@@ -1,0 +1,94 @@
+========== 1. OVERVIEW ==========
+NAME                               READY   STATUS    RESTARTS   AGE
+pod/kk-payments-557647f854-n5nwf   1/1     Running   0          31m
+pod/kk-payments-557647f854-p4lq6   1/1     Running   0          31m
+
+NAME                          TYPE       CLUSTER-IP    EXTERNAL-IP   PORT(S)          AGE
+service/kk-payments-service   NodePort   10.97.46.50   <none>        3001:30001/TCP   16m
+
+NAME                          READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/kk-payments   2/2     2            2           31m
+
+NAME                                     DESIRED   CURRENT   READY   AGE
+replicaset.apps/kk-payments-557647f854   2         2         2       31m
+
+========== 2. DEPLOYMENT DETAILS ==========
+Name:                   kk-payments
+Namespace:              default
+CreationTimestamp:      Thu, 05 Nov 2026 19:17:42 +0300
+Labels:                 app=kk-payments
+                        week=8
+Annotations:            deployment.kubernetes.io/revision: 1
+Selector:               app=kk-payments
+Replicas:               2 desired | 2 updated | 2 total | 2 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  25% max unavailable, 25% max surge
+Pod Template:
+  Labels:  app=kk-payments
+           version=1.0.0
+  Containers:
+   kk-payments:
+    Image:      ghcr.io/thaga798/kk-payments:1.0.0-e86d069
+    Port:       3001/TCP
+    Host Port:  0/TCP
+    Limits:
+      cpu:     500m
+      memory:  256Mi
+    Requests:
+      cpu:     100m
+      memory:  64Mi
+    Environment:
+      NODE_ENV:    production
+      PORT:        3001
+    Mounts:        <none>
+  Volumes:         <none>
+  Node-Selectors:  <none>
+  Tolerations:     <none>
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+  Progressing    True    NewReplicaSetAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   kk-payments-557647f854 (2/2 replicas created)
+Events:
+  Type    Reason             Age   From                   Message
+  ----    ------             ----  ----                   -------
+  Normal  ScalingReplicaSet  31m   deployment-controller  Scaled up replica set kk-payments-557647f854 from 0 to 2
+
+========== 3. POD LOGS ==========
+=== Logs: pod/kk-payments-557647f854-n5nwf ===
+kk-payments listening on port 3001
+Environment: production
+=== Logs: pod/kk-payments-557647f854-p4lq6 ===
+kk-payments listening on port 3001
+Environment: production
+
+========== 4. POD EXECUTION ==========
+--- Container user ---
+kijani
+--- Node version ---
+v18.20.8
+--- Local health check (IPv4 loopback) ---
+{"status":"ok","service":"kk-payments","environment":"production"}
+========== 5. RESOURCE USAGE ==========
+NAME                           CPU(cores)   MEMORY(bytes)
+kk-payments-557647f854-n5nwf   1m           30Mi
+kk-payments-557647f854-p4lq6   1m           49Mi
+
+========== 6. RECENT EVENTS ==========
+LAST SEEN   TYPE     REASON              OBJECT                              MESSAGE
+31m         Normal   ScalingReplicaSet   deployment/kk-payments              Scaled up replica set kk-payments-557647f854 from 0 to 2
+31m         Normal   SuccessfulCreate    replicaset/kk-payments-557647f854   Created pod: kk-payments-557647f854-p4lq6
+31m         Normal   Scheduled           pod/kk-payments-557647f854-n5nwf    Successfully assigned default/kk-payments-557647f854-n5nwf to minikube
+31m         Normal   Scheduled           pod/kk-payments-557647f854-p4lq6    Successfully assigned default/kk-payments-557647f854-p4lq6 to minikube
+31m         Normal   SuccessfulCreate    replicaset/kk-payments-557647f854   Created pod: kk-payments-557647f854-n5nwf
+31m         Normal   Pulling             pod/kk-payments-557647f854-n5nwf    Pulling image "ghcr.io/thaga798/kk-payments:1.0.0-e86d069"
+31m         Normal   Pulling             pod/kk-payments-557647f854-p4lq6    Pulling image "ghcr.io/thaga798/kk-payments:1.0.0-e86d069"
+29m         Normal   Pulled              pod/kk-payments-557647f854-n5nwf    Successfully pulled image "ghcr.io/thaga798/kk-payments:1.0.0-e86d069" in 1m35.481s (1m35.481s including waiting). Image size: 44931666 bytes.
+29m         Normal   Created             pod/kk-payments-557647f854-n5nwf    Container created
+29m         Normal   Started             pod/kk-payments-557647f854-n5nwf    Container started
+29m         Normal   Started             pod/kk-payments-557647f854-p4lq6    Container started
+29m         Normal   Created             pod/kk-payments-557647f854-p4lq6    Container created
+29m         Normal   Pulled              pod/kk-payments-557647f854-p4lq6    Successfully pulled image "ghcr.io/thaga798/kk-payments:1.0.0-e86d069" in 3.227s (1m38.707s including waiting). Image size: 44931666 bytes.

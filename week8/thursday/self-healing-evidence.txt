@@ -1,0 +1,37 @@
+========== PHASE 4: SELF-HEALING EVIDENCE ==========
+
+The test started with two healthy Pods:
+
+NAME                           READY   STATUS    RESTARTS
+kk-payments-557647f854-n5nwf   1/1     Running   0
+kk-payments-557647f854-p4lq6   1/1     Running   0
+
+Pod selected for deletion: kk-payments-557647f854-n5nwf
+
+T0 (deletion started): 19:55:37
+pod "kk-payments-557647f854-n5nwf" deleted from default namespace
+
+Kubernetes created a replacement Pod:
+kk-payments-557647f854-flgnp
+
+T1 (replacement Ready): 19:56:23
+pod/kk-payments-557647f854-flgnp condition met
+
+Measured self-healing time: 46 seconds
+
+Pods after replacement:
+
+NAME                           READY   STATUS    RESTARTS   AGE
+kk-payments-557647f854-flgnp   1/1     Running   0          46s
+kk-payments-557647f854-p4lq6   1/1     Running   0          38m
+
+Final Deployment status:
+
+NAME          READY   UP-TO-DATE   AVAILABLE
+kk-payments   2/2     2            2
+
+Result: The deleted Pod was replaced automatically. The surviving Pod
+remained running, and the Deployment returned to its desired state of
+two available replicas.
+
+========== END OF SELF-HEALING EVIDENCE ==========
