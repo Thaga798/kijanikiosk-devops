@@ -1,63 +1,40 @@
 # Week 8 Friday — Production Image Build Verification
 
-## Build command
+## Build configuration
 
-docker build --no-cache \
-  -f week8/friday/Dockerfile.production \
-  -t kijanikiosk-payments:1.0.0-local \
-  week8/friday/
-
-## Build result
-
-Result: SUCCESS
+Dockerfile: week8/friday/Dockerfile.production
+Build strategy: Multi-stage build
+Runtime base: Alpine Linux 3.20
 Build cache: Disabled (--no-cache)
-Image: kijanikiosk-payments:1.0.0-local
-Base image: node:18-alpine
-Build strategy: Multi-stage Docker build
 
 ## Image size
 
-Docker-reported disk usage: 181 MB
-Docker-reported content size: 44.9 MB
+Image: kijanikiosk/kk-payments:v1.0.0-friday
+Docker-reported disk usage: 89.8 MB
+Docker-reported content size: 24.6 MB
 
-The two measurements are recorded separately because they represent
-different image-size measurements. The disk-usage measurement is above
-the assignment's 100 MB target and requires further investigation or
-image optimisation if that is the grading measurement.
+Status: PASS — image is below the 100 MB target.
 
 ## Runtime user verification
 
-Command:
-docker run --rm kijanikiosk-payments:1.0.0-local whoami
-
-Observed result:
-kijani
+Command: docker run --rm --entrypoint whoami IMAGE
+Observed result: kijani
 
 Status: PASS — application runs as a non-root user.
 
 ## TypeScript compiler verification
 
-Command:
-docker run --rm kijanikiosk-payments:1.0.0-local sh -c 'command -v tsc'
-
-Observed result:
-No executable path returned.
+Command: docker run --rm --entrypoint sh IMAGE -c 'command -v tsc'
+Observed result: PASS: tsc is not installed
 
 Status: PASS — TypeScript compiler is absent.
 
 ## Health check verification
 
-Container: kk-payments-healthcheck
-Configured health check: wget against http://127.0.0.1:3000/health
-
-Observed Docker state:
-Final status=running
-Health=healthy
-User=kijani
-
+Container: kk-friday-check
+Observed Docker health: healthy
 Application response:
-{"status":"ok","version":"1.0.0","port":3000}
+{"status":"ok","version":"1.0.0-local","port":3001}
 
-Status: PASS — container became healthy during the first polling check.
-
-The temporary verification container was removed after testing.
+Status: PASS — application health check succeeded.
+The temporary verification container was removed.
