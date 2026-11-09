@@ -1,0 +1,5 @@
+Registry: Nexus Docker hosted
+Repository: docker-kijanikiosk
+Image: localhost:8082/kk-payments:1.0.0-76d7c42
+Push result: SUCCESS
+Digest: sha256:4d4e2796343c73dc1cf028e65900a79991ff0365499fb9514ebb8023812ab0bc
