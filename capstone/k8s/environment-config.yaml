@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kk-payments-config
+  namespace: default
+data:
+  DB_HOST: payments-db.production.svc.cluster.local
+  APP_ENVIRONMENT: production
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: kk-payments-secret
+  namespace: default
+type: Opaque
+stringData:
+  DB_PASSWORD: demo-production-placeholder
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kk-payments-config
+  namespace: kijani-staging
+data:
+  DB_HOST: payments-db.staging.svc.cluster.local
+  APP_ENVIRONMENT: staging
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: kk-payments-secret
+  namespace: kijani-staging
+type: Opaque
+stringData:
+  DB_PASSWORD: demo-staging-placeholder

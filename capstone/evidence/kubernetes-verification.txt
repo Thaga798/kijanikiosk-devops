@@ -1,0 +1,54 @@
+KIJANIKIOSK CAPSTONE KUBERNETES VERIFICATION
+2026-11-12T09:46:02+03:00
+
+===== CLUSTER =====
+capstone
+NAME       STATUS   ROLES           AGE     VERSION
+capstone   Ready    control-plane   3h20m   v1.37.0
+
+===== PRODUCTION =====
+NAME                          READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/kk-payments   3/3     3            3           155m
+
+NAME                               READY   STATUS    RESTARTS   AGE
+pod/kk-payments-55985dfff4-428n5   1/1     Running   0          100m
+pod/kk-payments-55985dfff4-gsdk7   1/1     Running   0          101m
+pod/kk-payments-55985dfff4-p55bl   1/1     Running   0          100m
+
+NAME                          TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)    AGE
+service/kk-payments-service   ClusterIP   10.101.201.106   <none>        3001/TCP   155m
+service/kubernetes            ClusterIP   10.96.0.1        <none>        443/TCP    3h19m
+NAME                        ADDRESSTYPE   PORTS   ENDPOINTS                             AGE
+kk-payments-service-55b84   IPv4          3001    10.244.0.12,10.244.0.13,10.244.0.14   155m
+
+===== STAGING =====
+NAME                          READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/kk-payments   3/3     3            3           101m
+
+NAME                               READY   STATUS    RESTARTS   AGE
+pod/kk-payments-55985dfff4-9dnlq   1/1     Running   0          101m
+pod/kk-payments-55985dfff4-frj9t   1/1     Running   0          101m
+pod/kk-payments-55985dfff4-j87h9   1/1     Running   0          101m
+
+NAME                          TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
+service/kk-payments-service   ClusterIP   10.105.52.245   <none>        3001/TCP   15m
+NAME                        ADDRESSTYPE   PORTS   ENDPOINTS                            AGE
+kk-payments-service-8rg6z   IPv4          3001    10.244.0.9,10.244.0.11,10.244.0.10   15m
+
+===== INGRESS =====
+NAME             CLASS   HOSTS          ADDRESS        PORTS   AGE
+kijani-ingress   nginx   kijani.local   192.168.58.2   80      125m
+
+===== CONFIGURATION NAMES =====
+NAME                           DATA   AGE
+configmap/kk-payments-config   2      103m
+configmap/kube-root-ca.crt     1      3h19m
+
+NAME                        TYPE     DATA   AGE
+secret/kk-payments-secret   Opaque   1      103m
+NAME                           DATA   AGE
+configmap/kk-payments-config   2      103m
+configmap/kube-root-ca.crt     1      107m
+
+NAME                        TYPE     DATA   AGE
+secret/kk-payments-secret   Opaque   1      103m

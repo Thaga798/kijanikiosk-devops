@@ -1,0 +1,163 @@
+
+pipeline {
+    agent any
+
+    options {
+        timeout(time: 20, unit: 'MINUTES')
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+        disableConcurrentBuilds()
+    }
+
+    environment {
+        APP_NAME = 'kk-payments'
+        IMAGE = 'localhost:8082/kk-payments:1.0.0-76d7c42'
+        STAGING_NAMESPACE = 'kijani-staging'
+        PRODUCTION_NAMESPACE = 'default'
+        DEPLOYMENT = 'kk-payments'
+    }
+
+    stages {
+        stage('Checkout and Validate') {
+            steps {
+                checkout scm
+                sh '''
+                    set -eu
+                    test -f capstone/k8s/staging-namespace.yaml
+                    test -f capstone/k8s/environment-config.yaml
+                    test -f capstone/k8s/production-deployment.yaml
+                    test -f capstone/k8s/production-service.yaml
+                    test -f capstone/k8s/ingress.yaml
+                    test -f capstone/scripts/check-error-rate.sh
+
+                    echo "Required deployment files found."
+                    echo "Target image: $IMAGE"
+                    kubectl config current-context
+                    kubectl get nodes
+                '''
+            }
+        }
+
+        stage('Deploy to Staging') {
+            steps {
+                sh '''
+                    set -eu
+
+                    kubectl apply -f capstone/k8s/staging-namespace.yaml
+                    kubectl apply -f capstone/k8s/environment-config.yaml
+
+                    kubectl apply -f capstone/k8s/production-service.yaml \
+                        -n "$STAGING_NAMESPACE"
+
+                    kubectl apply -f capstone/k8s/production-deployment.yaml \
+                        -n "$STAGING_NAMESPACE"
+
+                    kubectl rollout status deployment/"$DEPLOYMENT" \
+                        -n "$STAGING_NAMESPACE" --timeout=180s
+                '''
+            }
+        }
+
+        stage('Staging Smoke Test') {
+            steps {
+                sh '''
+                    set -eu
+
+                    RESPONSE=$(kubectl exec deployment/"$DEPLOYMENT" \
+                        -n "$STAGING_NAMESPACE" -- \
+                        wget -qO- http://127.0.0.1:3001/health)
+
+                    echo "$RESPONSE"
+                    echo "$RESPONSE" | grep -q '"status":"ok"'
+
+                    echo "Staging health check passed."
+                '''
+            }
+        }
+
+        stage('Production Security Review') {
+            steps {
+                input message: 'Review the production security checklist and staging smoke-test result before proceeding.',
+                      ok: 'Continue to approval'
+            }
+        }
+
+        stage('Human Production Approval') {
+            steps {
+                script {
+                    def decision = input(
+                        message: 'Approve deployment to production?',
+                        ok: 'Approve production deployment',
+                        parameters: [
+                            string(
+                                name: 'APPROVAL_REASON',
+                                defaultValue: 'Staging smoke test passed; security review completed.',
+                                description: 'Record the reason for approval'
+                            )
+                        ],
+                        submitterParameter: 'APPROVED_BY'
+                    )
+
+                    env.APPROVED_BY = decision['APPROVED_BY']
+                    env.APPROVAL_REASON = decision['APPROVAL_REASON']
+
+                    echo "Production approved by: ${env.APPROVED_BY}"
+                    echo "Approval reason: ${env.APPROVAL_REASON}"
+                }
+            }
+        }
+
+        stage('Deploy to Production') {
+            steps {
+                sh '''
+                    set -eu
+
+                    kubectl apply -f capstone/k8s/production-service.yaml \
+                        -n "$PRODUCTION_NAMESPACE"
+
+                    kubectl apply -f capstone/k8s/ingress.yaml \
+                        -n "$PRODUCTION_NAMESPACE"
+
+                    kubectl apply -f capstone/k8s/production-deployment.yaml \
+                        -n "$PRODUCTION_NAMESPACE"
+
+                    kubectl rollout status deployment/"$DEPLOYMENT" \
+                        -n "$PRODUCTION_NAMESPACE" --timeout=180s
+                '''
+            }
+        }
+
+        stage('Production Smoke Test') {
+            steps {
+                sh '''
+                    set -eu
+
+                    RESPONSE=$(kubectl exec deployment/"$DEPLOYMENT" \
+                        -n "$PRODUCTION_NAMESPACE" -- \
+                        wget -qO- http://127.0.0.1:3001/health)
+
+                    echo "$RESPONSE"
+                    echo "$RESPONSE" | grep -q '"status":"ok"'
+
+                    echo "Production health check passed."
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "SUCCESS: ${APP_NAME} deployment pipeline completed."
+            echo "Production approver: ${env.APPROVED_BY ?: 'Not recorded'}"
+            echo "Approval reason: ${env.APPROVAL_REASON ?: 'Not recorded'}"
+        }
+
+        failure {
+            echo "FAILURE: ${JOB_NAME} #${BUILD_NUMBER}"
+            echo "Review the Jenkins console log."
+        }
+
+        always {
+            echo "Pipeline finished with status: ${currentBuild.currentResult}"
+        }
+    }
+}
