@@ -32,7 +32,7 @@ pipeline {
                     echo "Required deployment files found."
                     echo "Target image: $IMAGE"
                     kubectl config current-context
-                    kubectl get nodes
+                    kubectl get deployments -n "$STAGING_NAMESPACE"
                 '''
             }
         }
@@ -42,7 +42,6 @@ pipeline {
                 sh '''
                     set -eu
 
-                    kubectl apply -f capstone/k8s/staging-namespace.yaml
                     kubectl apply -f capstone/k8s/environment-config.yaml
 
                     kubectl apply -f capstone/k8s/production-service.yaml \
