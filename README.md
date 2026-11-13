@@ -53,27 +53,29 @@ Create the staging namespace and environment configuration:
     kubectl apply -f capstone/k8s/staging-namespace.yaml
     kubectl apply -f capstone/k8s/environment-config.yaml
 
-Load the application image into Minikube. The image must match the
-tag configured in `capstone/k8s/production-deployment.yaml`.
+Build the application image from the capstone application directory:
 
-    minikube image load localhost:8082/kk-payments:1.0.0-76d7c42 -p capstone
+    docker build --build-arg APP_VERSION=1.0.0-capstone \
+      -t kijanikiosk/kk-payments:1.0.0-capstone \
+      -f capstone/app/Dockerfile.production capstone/app
 
-Ensure the `kijani-registry-credentials` image pull secret referenced
-by the Deployment exists in both namespaces.
+Load the image into the Minikube profile:
 
-Apply the production resources:
+    minikube image load kijanikiosk/kk-payments:1.0.0-capstone -p capstone
 
-    kubectl apply -f capstone/k8s/production-service.yaml
-    kubectl apply -f capstone/k8s/production-deployment.yaml
-    kubectl apply -f capstone/k8s/ingress.yaml
+The Deployment uses `imagePullPolicy: Never`, so the image must be
+loaded into the Minikube node before applying the Deployment.
+
+Apply the production Service, Deployment and Ingress:
+
+    kubectl apply -n default -f capstone/k8s/production-service.yaml
+    kubectl apply -n default -f capstone/k8s/production-deployment.yaml
+    kubectl apply -n default -f capstone/k8s/ingress.yaml
 
 Apply the Service and Deployment to staging:
 
-    kubectl apply -f capstone/k8s/production-service.yaml -n kijani-staging
-    kubectl apply -f capstone/k8s/production-deployment.yaml -n kijani-staging
-
-The image must already be available locally because the Deployment
-uses `imagePullPolicy: Never`.
+    kubectl apply -n kijani-staging -f capstone/k8s/production-service.yaml
+    kubectl apply -n kijani-staging -f capstone/k8s/production-deployment.yaml
 
 ## 5. How to run pipeline
 

@@ -29,6 +29,7 @@ flowchart TD
 
     M[Ingress Access Logs] --> E[Error Rate Monitor]
     E --> R[5xx Error Rate Report]
+```
 
 ## Main components
 

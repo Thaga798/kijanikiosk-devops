@@ -10,7 +10,7 @@ pipeline {
 
     environment {
         APP_NAME = 'kk-payments'
-        IMAGE = 'localhost:8082/kk-payments:1.0.0-76d7c42'
+        IMAGE = 'kijanikiosk/kk-payments:1.0.0-capstone'
         STAGING_NAMESPACE = 'kijani-staging'
         PRODUCTION_NAMESPACE = 'default'
         DEPLOYMENT = 'kk-payments'

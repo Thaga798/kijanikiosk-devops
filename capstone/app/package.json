@@ -1,0 +1,7 @@
+{
+  "name": "kijanikiosk-payments",
+  "version": "1.0.0",
+  "private": true,
+  "description": "KijaniKiosk payments API for the delivery capstone",
+  "main": "server.js"
+}

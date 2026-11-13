@@ -1,0 +1,60 @@
+KIJANIKIOSK CAPSTONE - FINAL DEPLOYMENT VERIFICATION
+Captured: 2026-11-13T15:36:24+03:00
+
+===== CLUSTER =====
+capstone
+type: Control Plane
+host: Running
+kubelet: Running
+apiserver: Running
+kubeconfig: Configured
+
+NAME       STATUS   ROLES           AGE   VERSION
+capstone   Ready    control-plane   33h   v1.37.0
+
+===== PRODUCTION DEPLOYMENT =====
+NAME          READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS    IMAGES                                   SELECTOR
+kk-payments   3/3     3            3           32h   kk-payments   kijanikiosk/kk-payments:1.0.0-capstone   app=kk-payments
+NAME                          READY   STATUS    RESTARTS   AGE   IP            NODE       NOMINATED NODE   READINESS GATES
+kk-payments-b665bdb64-7rkhl   1/1     Running   0          84s   10.244.0.16   capstone   <none>           <none>
+kk-payments-b665bdb64-cv9w9   1/1     Running   0          22m   10.244.0.15   capstone   <none>           <none>
+kk-payments-b665bdb64-zp62q   1/1     Running   0          23m   10.244.0.11   capstone   <none>           <none>
+
+===== STAGING DEPLOYMENT =====
+NAME          READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS    IMAGES                                   SELECTOR
+kk-payments   3/3     3            3           31h   kk-payments   kijanikiosk/kk-payments:1.0.0-capstone   app=kk-payments
+NAME                          READY   STATUS    RESTARTS   AGE   IP            NODE       NOMINATED NODE   READINESS GATES
+kk-payments-b665bdb64-ch8pb   1/1     Running   0          22m   10.244.0.14   capstone   <none>           <none>
+kk-payments-b665bdb64-z546n   1/1     Running   0          23m   10.244.0.10   capstone   <none>           <none>
+kk-payments-b665bdb64-zzvlw   1/1     Running   0          22m   10.244.0.13   capstone   <none>           <none>
+
+===== APPLICATION HEALTH =====
+Production:
+{"status":"ok","version":"1.0.0-capstone","port":3001}
+Staging:
+{"status":"ok","version":"1.0.0-capstone","port":3001}
+===== ENVIRONMENT SEPARATION =====
+Production APP_ENVIRONMENT: production
+Staging APP_ENVIRONMENT: staging
+
+===== SERVICES AND ENDPOINTS =====
+NAME                  TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)    AGE
+kk-payments-service   ClusterIP   10.101.201.106   <none>        3001/TCP   32h
+kubernetes            ClusterIP   10.96.0.1        <none>        443/TCP    33h
+NAME                        ADDRESSTYPE   PORTS   ENDPOINTS                             AGE
+kk-payments-service-55b84   IPv4          3001    10.244.0.11,10.244.0.15,10.244.0.16   32h
+NAME                  TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
+kk-payments-service   ClusterIP   10.105.52.245   <none>        3001/TCP   30h
+NAME                        ADDRESSTYPE   PORTS   ENDPOINTS                             AGE
+kk-payments-service-8rg6z   IPv4          3001    10.244.0.10,10.244.0.13,10.244.0.14   30h
+
+===== INGRESS =====
+NAME             CLASS   HOSTS          ADDRESS        PORTS   AGE
+kijani-ingress   nginx   kijani.local   192.168.58.2   80      31h
+{"application":"kijanikiosk-payments","version":"1.0.0-capstone"}
+===== SELF-HEALING TEST =====
+Deleted: kk-payments-b665bdb64-9ch4s
+Replacement: kk-payments-b665bdb64-7rkhl
+Replacement reached Ready state.
+NAME          READY   UP-TO-DATE   AVAILABLE   AGE
+kk-payments   3/3     3            3           32h

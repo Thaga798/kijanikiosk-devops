@@ -14,11 +14,9 @@ spec:
       labels:
         app: kk-payments
     spec:
-      imagePullSecrets:
-        - name: kijani-registry-credentials
       containers:
         - name: kk-payments
-          image: localhost:8082/kk-payments:1.0.0-76d7c42
+          image: kijanikiosk/kk-payments:1.0.0-capstone
           imagePullPolicy: Never
           ports:
             - containerPort: 3001
@@ -28,7 +26,7 @@ spec:
             - name: PORT
               value: "3001"
             - name: APP_VERSION
-              value: "1.0.0-76d7c42"
+              value: "1.0.0-capstone"
           envFrom:
             - configMapRef:
                 name: kk-payments-config
