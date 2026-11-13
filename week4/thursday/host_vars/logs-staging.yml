@@ -1,4 +1,0 @@
-service_name: kk-logs
-service_port: 5000
-service_directory: logs
-service_exec: /usr/bin/python3 /opt/kijanikiosk/logs/aggregator.py
