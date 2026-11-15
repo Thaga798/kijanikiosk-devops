@@ -1,0 +1,14 @@
+KijaniKiosk Error-Rate Monitor Verification
+2026-11-12T08:34:36+03:00
+
+===== LIVE TRAFFIC TEST =====
+NO DATA: No HTTP requests found in the selected window.
+
+===== SYNTHETIC FAILURE TEST =====
+Requests analysed: 10
+HTTP 5xx errors: 1
+5xx error rate: 10.00%
+Alert threshold: 5%
+ALERT: 5xx error rate is above threshold.
+Expected alert exit code: 1
+Actual exit code: 1
