@@ -1,0 +1,33 @@
+KIJANIKIOSK CAPSTONE - JENKINS PIPELINE EVIDENCE
+
+Jenkins Job: kijanikiosk-capstone
+Build Number: #6
+Repository: https://github.com/Thaga798/kijanikiosk-devops
+Branch: feature/capstone-infrastructure
+Pipeline Definition: capstone/Jenkinsfile
+Git Revision: bf8f948bae1d629bfbdf91071182175e9e6526ce
+Result: SUCCESS
+
+PIPELINE VERIFICATION
+
+1. GitHub checkout: SUCCESS
+2. Checkout and validation: SUCCESS
+3. Staging deployment: SUCCESS
+4. Staging smoke test: SUCCESS
+5. Production security review: APPROVED
+6. Human production approval: APPROVED
+7. Production deployment: SUCCESS
+8. Production smoke test: SUCCESS
+
+STAGING HEALTH RESPONSE
+{"status":"ok","version":"1.0.0-capstone","port":3001}
+
+PRODUCTION HEALTH RESPONSE
+{"status":"ok","version":"1.0.0-capstone","port":3001}
+
+PRODUCTION APPROVAL
+
+Approver: ED04
+Approval Reason: Staging smoke test passed; security review completed.
+
+FINAL STATUS: SUCCESS
